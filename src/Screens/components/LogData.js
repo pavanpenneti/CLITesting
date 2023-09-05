@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
@@ -10,9 +10,9 @@ function LogData() {
     const path =`http://${ipAddress}:5232`;
   
     const [filedata, setFiledata] = useState("");
-    useEffect(() => {
-        getFileData1();
-    }, []);
+    // useEffect(() => {
+    //     getFileData1();
+    // }, []);
     // const urlEncodedPath = encodeURIComponent(filedata.replace(/\\/g, '%5C'));
     const getFileData1= async () => {
         try {
