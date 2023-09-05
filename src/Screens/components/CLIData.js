@@ -61,7 +61,7 @@ function CLIData (){
         <button type="submit" style={{ margin: "5px" }}  onClick={getSerialPort1} >Get Ports</button>
       </label>
       <select value={serialNo} onChange={handleSelectChange}>
-      <option selected >select device</option>
+      
     
     {data4.map((item, index) => (
           <option key={index} value={item.port}>

@@ -164,7 +164,6 @@ const tables1 =[  {"title":" ---- ", "data":result2[0]},
       <button type="submit" onClick={getUSBDevices}>Get Devices</button>
       {"  "}  
       <select value={serialNo} onChange={handleSelectChange}>
-      <option selected >select device</option>
         {data4.map((item,index) => (         
           <option key={index} value={item.data.usbaddress}>
             {item.data.usbaddress}
