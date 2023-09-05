@@ -1,0 +1,31 @@
+/* Table.module.css */
+.tables {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    border-color: black 1px thin;
+  }
+  
+  .table {
+    
+    background-color: #f1f1f1;
+    
+  }
+  .th {
+    background-color: #0FA9B3;
+    color: white;
+  
+  }
+  tr:nth-child(even) {background-color: #D8DAE3;}
+  tr:nth-child(odd) {
+    background-color: #ADCCCE;
+  }
+  td{
+    text-align: left;
+    
+  }
+  .tables1 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-color: black 1px thin;
+  }
+  
