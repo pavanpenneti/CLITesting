@@ -20,8 +20,9 @@ function FetchData() {
   const [serialNo, setSerialNo] = useState("");
   const ipaddress =`http://${ipAddress}`;
   const serialno= serialNo;
+  const apiusbdata =  `${ipaddress}/getusbdevices`
   const getUSBDevices= async () =>{
-    const response =await axios.get(`${ipaddress}/getusbdevices`)
+    const response =await axios.get(apiusbdata)
     setData4(response.data);
   } 
   const refresh = async () => {
