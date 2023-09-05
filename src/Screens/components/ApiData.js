@@ -20,9 +20,8 @@ function FetchData() {
   const [serialNo, setSerialNo] = useState("");
   const ipaddress =`http://${ipAddress}`;
   const serialno= serialNo;
-  const apiusbdata =  `${ipaddress}/getusbdevices`
   const getUSBDevices= async () =>{
-    const response =await axios.get(apiusbdata)
+    const response =await axios.get(`${ipaddress}/getusbdevices`)
     setData4(response.data);
   } 
   const refresh = async () => {
@@ -165,6 +164,7 @@ const tables1 =[  {"title":" ---- ", "data":result2[0]},
       <button type="submit" onClick={getUSBDevices}>Get Devices</button>
       {"  "}  
       <select value={serialNo} onChange={handleSelectChange}>
+      <option selected >select device</option>
         {data4.map((item,index) => (         
           <option key={index} value={item.data.usbaddress}>
             {item.data.usbaddress}
