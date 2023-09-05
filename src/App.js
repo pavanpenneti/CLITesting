@@ -1,25 +1,6 @@
-// //import logo from './logo.svg';
-// import './App.css';
-// import FilterData from './Screens/FilterData';
-// import LogData from './Screens/LogData';
-
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <LogData/>
-//       {/* <FilterData/> */}
-//     </div>
-//   );
-// }
-
-// export default App;
 
 import React, { Component } from 'react';
-import { BrowserRouter as Router,Routes, Route, Link } from 'react-router-dom';
-
-import About from './Screens/components/CLIData';
-import Contact from './Screens/components/ApiData';
+import { BrowserRouter as Router,Routes, Route } from 'react-router-dom';
 import './App.css';
 import LogData from './Screens/components/LogData';
 import FetchData from './Screens/components/ApiData';

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import axios from 'axios';
-import {CustomTable, ActivitylogTable, CustomTable1, SpectrumTable, SpectrumTable1} from '../../buttonscreen/CustomTable';
+import {CustomTable,CustomTable1, SpectrumTable} from '../../buttonscreen/CustomTable';
 import styles from "../../css/CustomTable.module.css";
 import { Link } from 'react-router-dom';
 
@@ -35,6 +35,7 @@ function FetchData() {
       setData(response1.data);
       setData1(response2.data);
       setData3(response3.data);
+      console.log(data3)
     } catch (error) { 
       console.error(error);
     } 
@@ -55,6 +56,7 @@ function FetchData() {
         
       const extractedData = jsonData[1]; // Assuming the data you want to retrieve is at index 1
       setData6(Object.keys(extractedData).map((key) => extractedData[key]));
+      console.log(data8)
     }catch (error) { 
       console.error(error);
      
@@ -66,6 +68,7 @@ function FetchData() {
     const jsonData = await response.json(); 
     const extractedData1 = jsonData[0]; // Assuming the data you want to retrieve is at index 0
         setData7([extractedData1]);
+        console.log(data7)
     const extractedData = jsonData[1]; // Assuming the data you want to retrieve is at index 1
     setData5(Object.keys(extractedData).map((key) => extractedData[key]));
       }   catch (error) { 
