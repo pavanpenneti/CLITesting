@@ -21,7 +21,7 @@ function CLIData (){
         
     const getCLIData = async () =>{
         try {
-            const response = await axios.post(`${ipaddress}/Dynamic SET Commands?Command=${input}&portNo=${data4[0].port}`);
+            const response = await axios.post(`${ipaddress}/Dynamic SET Commands?Command=${input}&portNo=${serialNo}`);
             setData5(response.data);
             console.log(data5)
           } catch (error) {
@@ -30,7 +30,7 @@ function CLIData (){
         }
     const addPwdCLiData= async () =>{
         try {
-            const response = await axios.post(`${ipaddress}/Dynamic SET Commands?Command=24cs5z&portNo=${data4[0].port}`);
+            const response = await axios.post(`${ipaddress}/Dynamic SET Commands?Command=24cs5z&portNo=${serialNo}`);
             setData5(response.data);
             console.log(data5)
           } catch (error) {
@@ -53,6 +53,7 @@ function CLIData (){
             color: 'black',
             top:0,
             backgroundColor: '#f1f1f1',
+            zindex: -1,
              margin: '0 auto' }}>
                  <label>
          
@@ -78,9 +79,12 @@ function CLIData (){
       <button style={{ margin: "2px" }} >
         <Link to="/LogData">Log Data</Link>
       </button>
+      <button>
+        <Link to="/SetDataFormat">SET Data </Link>
+      </button>
                 </div>
     <div style={{
-            position: 'fixed',
+           
             padding: '2px 0',
             width: '100%',
             color: 'black',

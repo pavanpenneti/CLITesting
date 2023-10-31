@@ -53,7 +53,7 @@ function ActivitylogTable({title,tableheading1,tableheading2,tableheading3,table
       </tr>
     </thead>
     <tbody>
-      {activitydata.map((data, index) => (
+      {activitydata?.map((data, index) => (
         <tr key={index}>
           <td>{data.byActivitySeqNumber}</td>
           <td>{data.ActivityDate}</td>
@@ -67,9 +67,8 @@ function ActivitylogTable({title,tableheading1,tableheading2,tableheading3,table
 
 function SpectrumTable({title, data}){
   return (<div>
-   <div>   <table>
-        <thead>
-          
+      <table>
+   <thead>         
           <tr className={styles.tr}><td className={styles.th} colSpan={3} style={{textAlign: "center"}}>{title}</td></tr>
           <tr>
           <th style={{textAlign: "center"}}>Index</th>
@@ -78,7 +77,8 @@ function SpectrumTable({title, data}){
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
+          {data?.map((item, index) => (
+
             <tr key={index}>
                 <td style={{textAlign: "center"}}>{index} </td>
               <td style={{textAlign: "center"}}>{item.x} MHz</td>
@@ -86,7 +86,37 @@ function SpectrumTable({title, data}){
             </tr>
           ))}
         </tbody>
-      </table></div>
+      </table>
+      </div>
+ )
+}
+
+
+
+function OATable({property, data,title}){
+  return (<div>
+    <table>
+        <thead>
+       {data && <tr className={styles.tr}><th className={styles.th} colSpan={11} style={{textAlign: "center"}}>{title}</th></tr>}
+ <tr >
+         {property.map(([key]) => (
+           <th key={key}>{key}</th>
+         ))}
+       </tr>
+ </thead>
+ <tbody>
+          
+      {data?.map((signal, index) => (
+        <tr key={index}>
+          {property.map(([key, value]) => (
+            <td key={key}>
+              {typeof signal[key] === 'boolean' ? signal[key].toString() : signal[key]}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+ </table>
       </div>
  )
 }
@@ -101,4 +131,4 @@ function SpectrumTable({title, data}){
 
 
 
-export  {CustomTable, CustomTable1, ActivitylogTable, SpectrumTable}
+export  {CustomTable, CustomTable1, ActivitylogTable, SpectrumTable, OATable }
