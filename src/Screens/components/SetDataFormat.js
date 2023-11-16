@@ -240,6 +240,38 @@ function SetDataFormat() {
         setInputText('');
       }
   }
+ 
+ const doubleToHex =(event)=>{
+  event.preventDefault();
+ 
+  const buffer = new ArrayBuffer(8);
+    const view = new DataView(buffer);
+    view.setFloat64(0, inputText, true); // Assuming little-endian format
+    const byteArray = new Uint8Array(buffer);
+    const hexArray = Array.from(byteArray).map(byte => byte.toString(16).padStart(2, '0'));
+    const hexString1 = hexArray.reverse().join('');
+    const  hexString = hexString1.replace(/(..)(?!$)/g, '$1 ');
+    
+    setResult((prevResult) => prevResult + " " + hexString + " ");
+    setAppendedData((prevAppendedData) => [...prevAppendedData, hexString]);
+ 
+ }
+ const reversedoubleToHex=(event)=>{
+  event.preventDefault();
+ 
+  const buffer = new ArrayBuffer(8);
+    const view = new DataView(buffer);
+    view.setFloat64(0, inputText, true); // Assuming little-endian format
+    const byteArray = new Uint8Array(buffer);
+    const hexArray = Array.from(byteArray).map(byte => byte.toString(16).padStart(2, '0'));
+    const hexString1 = hexArray.join('');
+    const  hexString = hexString1.replace(/(..)(?!$)/g, '$1 ');
+    
+    setResult((prevResult) => prevResult + " " + hexString + " ");
+    setAppendedData((prevAppendedData) => [...prevAppendedData, hexString]);
+ }
+
+
 
   const saveAppendedData =(event)=>{
     event.preventDefault(); 
@@ -386,7 +418,18 @@ function SetDataFormat() {
         >
           ~Float-Hex_4b{" "}
         </button>
-        
+        <button
+          onClick={doubleToHex}
+          style={{ marginLeft: "10px", marginRight: "10px",background:"#FF5c26", color:'white' }}
+        >
+          double-Hex_8b{" "}
+        </button>
+        <button
+          onClick={reversedoubleToHex}
+          style={{ marginLeft: "10px", marginRight: "10px",background:"#FF5c26", color:'white' }}
+        >
+          ~double-Hex_8b{" "}
+        </button>
         <button
           onClick={convertToInt2}
           style={{ marginLeft: "10px", marginRight: "10px",background:"#5c2049", color:'white' }}
@@ -435,6 +478,7 @@ function SetDataFormat() {
         >
           ~Int-Hex_4b{" "}
         </button>
+     
       </form>
       <div>
       <div

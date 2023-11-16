@@ -22,8 +22,12 @@ function FetchData() {
 
 
   const getUSBDevices= async () =>{
+    try{
     const response =await axios.get(`${ipaddress}/getusbdevices`)
-    setData4(response.data);
+    setData4(response.data);}
+    catch(e){
+      alert(`If IP Address entered is correct \nPlease check whether Server or Internet/VPN is connected and try again`);
+    }
   } 
 
   const refresh = async () => {
@@ -158,6 +162,7 @@ function getNonObjectProperties(obj) {
   return Object.entries(obj)
     .filter(([_, value]) => typeof value !== "object")
     .reduce((acc, [key, value]) => {
+     
       acc[key] = value;
       return acc;
     }, {});
@@ -168,6 +173,48 @@ const skey2 = getNonObjectProperties(data9)
 const signalProperties = data9.signals ? Object.entries(data9.signals[0]) : [];
 const signalProperties1 = data9.Splmnufsignals?Object.entries(data9.Splmnufsignals[4]) : [];
 const signalProperties2 = data9.Spldbgsignals?Object.entries(data9.Spldbgsignals[8]) : [];
+
+const dtTables = ["0x3D", 	"0x57", 	"0x3F", 	"0x3A", 	"0x5B_0", 	"0x5B_1", 	"0x5B_2", 	"0x5C_0", 	"0x5C_1", 	"0x5C_2", 	"0x5C_3", 	"0x5C_4", 	"0x5C_5", 	"0x48", 	"0x32", 	"0x21", 	"0x27", 	"0x20", 	"0x38", 	"0x50-1", 	"0x50-2", 	"0x50-3", 	"0x3E-1", 	"0x3E-2", 	"0x26", 	"0x25", 	"0x18-C0", 	"0x18-5C",  ]
+const spldtTables=["bandwidth", 	"opMode50", 	"opMode100", 	"opMode200", 	"rfselection", ]
+const renderTableRows = () => {
+  if (Object.keys(data9).length > 0) {
+    return dtTables.map(tableKey => (
+      <tr key={tableKey}>
+        <th colSpan="12" align="left">{tableKey}</th>
+        {data9[tableKey] && Object.entries(data9[tableKey]).map(([key, value]) => (
+          <tr key={key}>
+            <td>
+              <strong>{key}:</strong>
+            </td>
+            <td>
+              {value}
+            </td>
+          </tr>
+        ))}
+      </tr>
+    ));
+  }
+  return null; // Render nothing if data9 is empty
+};
+const rendersplTableRows = () => {
+  if (Object.keys(data9).length > 0) {
+    return spldtTables.map((key) => (
+      data9[key].map((item, index) => (
+        <tr key={`${key}_${index}`}>
+          {index === 0 && (
+            <th colSpan="12" align="left" rowSpan={data9[key].length}>
+              {key}
+            </th>
+          )}
+          <td>{item.name}</td>
+          <td>{item.value}</td>
+        </tr>
+      ))
+    ));
+  }
+  return null;
+};
+
 
   return (  
     <div>
@@ -206,6 +253,47 @@ const signalProperties2 = data9.Spldbgsignals?Object.entries(data9.Spldbgsignals
        <button type="submit" onClick={dsSpectrumData} >DS Spectrum Data</button> 
        <button type="submit" onClick={usSpectrumData} >US Spectrum Data</button>   </div>}
          </form>
+         {/* DR Data  */}
+         {isVisible && (serialNo.startsWith("DR") ) &&
+          <div style={{position: 'relative', top:'25px'}}>
+          {Object.keys(skey2).map(key => (
+              <tr key={key}>
+                <th colSpan="12" align='left' >{key}</th>
+                <td>{skey2[key].toString()}</td>
+              </tr>
+            ))}</div>}
+
+
+      
+             {/* DT Data  */}
+         {isVisible && (serialNo.startsWith("DT") ) &&
+          <div style={{position: 'relative', top:'25px'}}>
+          {Object.keys(skey2).map(key => (
+              <tr key={key}>
+                <th colSpan="12" align='left' >{key}</th>
+                <td>{skey2[key].toString()}</td>
+              </tr>
+            ))}
+            <br/>
+            
+            {renderTableRows()}
+            {rendersplTableRows()}
+   
+            <br/>
+    
+  </div>}
+       
+
+
+
+
+
+
+
+
+
+
+
 {/* OA Data */}
         {isVisible && serialNo.startsWith("OA") &&
           <div style={{position: 'relative', top:'25px'}}>
@@ -216,7 +304,7 @@ const signalProperties2 = data9.Spldbgsignals?Object.entries(data9.Spldbgsignals
               </tr>
             ))} 
             <br/>
-           
+            
             <b className={styles.th} colSpan={11} style={{textAlign: "center"}}>(0x2C Info)</b><br/>
              {(Object.keys(data9).length>0 )  && Object.keys(data9["0x2C"]).map(key => (
               <tr key={key}>
@@ -245,6 +333,11 @@ const signalProperties2 = data9.Spldbgsignals?Object.entries(data9.Spldbgsignals
       <OATable property={signalProperties1} data={data9.Splmnufsignals} title={"Manufacturing Signals"}/>
       <OATable property={signalProperties2} data={data9.Spldbgsignals} title={"Debug Signals"}/>
         </div>}
+
+
+
+
+
 {/* MB Display Data */}
         {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
         <div style={{position: 'relative', top:'55px'}}>

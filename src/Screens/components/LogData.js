@@ -15,6 +15,7 @@ function LogData() {
     const [result, setResult] = useState("");
     const [start, setStart] = useState("");
     const [end, setEnd] = useState("");
+    const [doubleValue, setDoubleValue] = useState(null);
     const path =`http://${ipAddress}:5232`;
   
     const [filedata, setFiledata] = useState("");
@@ -212,6 +213,43 @@ function LogData() {
         setInputText(" ")
       };
     
+      function hexToBinary(hex) {
+        return (parseInt(hex, 16).toString(2)).padStart(64, '0');
+      }
+      const convertHexToDouble = () => {
+        const hexWithoutSpaces = inputText.replace(/\s/g, '');
+        const binaryValue = hexToBinary(hexWithoutSpaces);
+        const sign = binaryValue.charAt(0) === '1' ? -1 : 1;
+        const exponent = parseInt(binaryValue.substr(1, 11), 2) - 1023;
+        const mantissa = 1 + binaryValue.substr(12).split('').reduce((sum, bit, index) => {
+          return sum + (bit === '1' ? Math.pow(2, -index - 1) : 0);
+        }, 0);
+        const doubleValue = sign * Math.pow(2, exponent) * mantissa;
+    
+        setResult(doubleValue);
+      };
+
+      const reverseconvertHexToDouble = () => {
+        const hexWithoutSpaces = inputText.replace(/\s/g, '');
+        const byteArray = [];
+        for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
+          const hexPair = hexWithoutSpaces.substr(i, 2);
+          byteArray.push(hexPair);
+        }
+      
+        const hexWithoutSpaces1 = byteArray.reverse().join('');
+        console.log(hexWithoutSpaces1)
+        const binaryValue = hexToBinary(hexWithoutSpaces1);
+        const sign = binaryValue.charAt(0) === '1' ? -1 : 1;
+        const exponent = parseInt(binaryValue.substr(1, 11), 2) - 1023;
+        const mantissa = 1 + binaryValue.substr(12).split('').reduce((sum, bit, index) => {
+          return sum + (bit === '1' ? Math.pow(2, -index - 1) : 0);
+        }, 0);
+        const doubleValue = sign * Math.pow(2, exponent) * mantissa;
+    
+        setResult(doubleValue);
+      };
+
       const convertToInt2 =(event)=>{
         event.preventDefault();
         try {
@@ -298,7 +336,8 @@ function LogData() {
             setResult(null);
           }
       }
-    
+     
+      
       const signedconvertToInt2Byte = (event)=>{
         event.preventDefault();
         try {
@@ -638,6 +677,18 @@ function LogData() {
           style={{ marginLeft: "10px", marginRight: "10px",background:"green", color:'white' }}
         >
           ~Hex_4b-Int{" "}
+        </button>
+        <button
+          onClick={convertHexToDouble}
+          style={{ marginLeft: "10px", marginRight: "10px",background:"#3366ff", color:'white' }}
+        >
+          Hex_8b-Int{" "}
+        </button>
+        <button
+          onClick={reverseconvertHexToDouble}
+          style={{ marginLeft: "10px", marginRight: "10px",background:"#3366ff", color:'white' }}
+        >
+          ~Hex_8b-Int{" "}
         </button>
         <br/>
        
