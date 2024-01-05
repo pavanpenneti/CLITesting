@@ -15,13 +15,12 @@
     color: white;
   
   }
-  tr:nth-child(even) {background-color: #D8DAE3;}
+  tr:nth-child(even) {background-color: #ADCCCE;}
   tr:nth-child(odd) {
-    background-color: #ADCCCE;
+    background-color:#D8DAE3 ;
   }
   td{
     text-align: left;
-    
   }
   .tables1 {
     display: grid;

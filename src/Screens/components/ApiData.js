@@ -48,6 +48,7 @@ function FetchData() {
     } }
     else{
       const response1 =await axios.get(`${ipaddress}/getcmsslotinfo?ipaddress=${serialno}&slotno=1&subslotno=0`)
+      console.log(response1.data)
         setData9(response1.data);
     }
   };
@@ -94,6 +95,11 @@ function FetchData() {
   }
   const data2 = data1.map(item =>{return {...item}})
   const keys = [
+    { startKey: "siCardType", endKey: "siHardwareRev1" },
+    { startKey: "siHardwareRev1", endKey: "byStatus" },
+    { startKey: "byStatus", endKey: "supportStatus" },
+    { startKey: "supportStatus", endKey: "bIsModuleID" },
+    { startKey: "bIsModuleID", endKey: "alarm_summary" },
     { startKey: "byScrtchpadStatus", endKey: "bySysStatus" },
     { startKey: "bySysStatus", endKey: "byAmpStatus" },
     { startKey: "byAmpStatus", endKey: "byAlmStatus" },
@@ -107,6 +113,7 @@ function FetchData() {
     { startKey: "bySpecStatus", endKey: "byNodeIdAmplifIdStatus" },
     { startKey: "byNodeIdAmplifIdStatus", endKey: "byPwrLvlStatus" },
     { startKey: "byPwrLvlStatus", endKey: "siCardType" },
+    
   ];
  const keys1 =[{ startKey: "byIAPNum", endKey: "strIAPname" }]
  
@@ -128,7 +135,7 @@ function FetchData() {
  }
  
 const result1 = [];
-for (let index = 0; index < 13; index++) {
+for (let index = 0; index < 18; index++) {
   result1.push(results(data, keys[index].startKey, keys[index].endKey));
 }
 const result2 = [];
@@ -136,19 +143,25 @@ for (let index = 0; index < 5; index++) {
   result2.push(results1(data2[index], keys1[0].startKey, keys1[0].endKey));
 }
 const tables= [
-  {"title":"0x24, 0x1D", "data":result1[0]},
-  {"title":"0x25", "data":result1[1]},
-  {"title":"0x26", "data":result1[2]},
-  {"title":"0x27", "data":result1[3]},
-  {"title":"0x28", "data":result1[4]},
-  {"title":"0x29", "data":result1[5]},
-  {"title":"0x2A", "data":result1[6]},
-  {"title":"0x2B", "data":result1[7]},
-  {"title":"0x2C", "data":result1[8]},
-  {"title":"0x2D", "data":result1[9]},
-  {"title":"0x2E", "data":result1[10]},
-  {"title":"0x2F", "data":result1[11]},
-  {"title":"0x39", "data":result1[12]},
+  {"title":"0x10", "data":result1[0]},
+  {"title":"0x41", "data":result1[1]},
+  {"title":"0x45", "data":result1[2]},
+  {"title":"0x48", "data":result1[3]},
+  {"title":"Extra Fields", "data":result1[4]},
+  {"title":"0x24, 0x1D", "data":result1[5]},
+  {"title":"0x25", "data":result1[6]},
+  {"title":"0x26", "data":result1[7]},
+  {"title":"0x27", "data":result1[8]},
+  {"title":"0x28", "data":result1[9]},
+  {"title":"0x29", "data":result1[10]},
+  {"title":"0x2A", "data":result1[11]},
+  {"title":"0x2B", "data":result1[12]},
+  {"title":"0x2C", "data":result1[13]},
+  {"title":"0x2D", "data":result1[14]},
+  {"title":"0x2E", "data":result1[15]},
+  {"title":"0x2F", "data":result1[16]},
+  {"title":"0x39", "data":result1[17]},
+  
 ]
 
 const tables1 =[  {"title":" ---- ", "data":result2[0]},
@@ -184,7 +197,7 @@ const renderTableRows = () => {
         {data9[tableKey] && Object.entries(data9[tableKey]).map(([key, value]) => (
           <tr key={key}>
             <td>
-              <strong>{key}:</strong>
+              {key}:
             </td>
             <td>
               {value}
@@ -215,7 +228,6 @@ const rendersplTableRows = () => {
   return null;
 };
 
-
   return (  
     <div>
     <div style={{backgroundColor:"#D8DAE3"}}>
@@ -226,6 +238,7 @@ const rendersplTableRows = () => {
         <input type="text" value={ipAddress} onChange={(e) => setIpAddress(e.target.value)} />
         {"                                                  "}
       </label>
+      
       <button type="submit" onClick={getUSBDevices}>Get Devices</button>
       {"  "}  
       <select value={serialNo} onChange={handleSelectChange}>
@@ -258,7 +271,7 @@ const rendersplTableRows = () => {
           <div style={{position: 'relative', top:'25px'}}>
           {Object.keys(skey2).map(key => (
               <tr key={key}>
-                <th colSpan="12" align='left' >{key}</th>
+                <td colSpan="12" align='left' >{key}</td>
                 <td>{skey2[key].toString()}</td>
               </tr>
             ))}</div>}
@@ -270,8 +283,8 @@ const rendersplTableRows = () => {
           <div style={{position: 'relative', top:'25px'}}>
           {Object.keys(skey2).map(key => (
               <tr key={key}>
-                <th colSpan="12" align='left' >{key}</th>
-                <td>{skey2[key].toString()}</td>
+                <td   colSpan="12" align='left' >{key}</td>
+                <td >{skey2[key].toString()}</td>
               </tr>
             ))}
             <br/>
@@ -282,61 +295,55 @@ const rendersplTableRows = () => {
             <br/>
     
   </div>}
-       
-
-
-
-
-
-
-
-
-
-
 
 {/* OA Data */}
         {isVisible && serialNo.startsWith("OA") &&
-          <div style={{position: 'relative', top:'25px'}}>
-          {Object.keys(skey2).map(key => (
+          <div style={{position: 'relative', top:'25px',alignItems:'baseline', border:"1px solid black" }}>
+            <table>
+              <tr style={{border: '1px solid black'}}>
+                <td >
+                {Object.keys(skey2).map(key => (
               <tr key={key}>
-                <th colSpan="12" align='left' >{key}</th>
+                <td colSpan="12" align='left' >{key}</td>
                 <td>{skey2[key]}</td>
               </tr>
             ))} 
-            <br/>
-            
-            <b className={styles.th} colSpan={11} style={{textAlign: "center"}}>(0x2C Info)</b><br/>
-             {(Object.keys(data9).length>0 )  && Object.keys(data9["0x2C"]).map(key => (
+                </td>
+                <td style={{ textAlign: 'left',verticalAlign: 'top'}}>
+                <b style={{textAlign:'center'}}>(0x2C Info)</b><br/>
+                {(Object.keys(data9).length>0 )  && Object.keys(data9["0x2C"]).map(key => (
               <tr key={key}>
-                <th colSpan="12" align='left' >{key}</th>
+                <td colSpan="12" align='left' >{key}</td>
                 <td>{data9["0x2C"][key]}</td>
               </tr>
             ))}
-            <br/>
-             <b className={styles.th} colSpan={11} style={{textAlign: "center"}}>Node Info</b><br/>
+                </td>
+                <td style={{textAlign: 'left',verticalAlign: 'top'}}>
+              <b>Node Info(0x21)</b><br/>
              {(Object.keys(data9).length>0 )  && Object.keys(data9["Node_Info"]).map(key => (
               <tr key={key}>
-                <th colSpan="12" align='left' >{key}</th>
+                <td colSpan="12" align='left' >{key}</td>
                 <td>{data9["Node_Info"][key]}</td>
               </tr>
             ))}
-            <br/>
-            <b className={styles.th} colSpan={11} style={{textAlign: "center"}}>MCU Info</b><br/>
+              </td>
+              <td style={{ textAlign: 'left',verticalAlign: 'top'}}>
+              <b>MCU Info(0x26)</b><br/>
             {(Object.keys(data9).length>0 )  && Object.keys(data9["Mcu_Info"]).map(key => (
               <tr key={key}>
-                <th colSpan="12" align='left' >{key}</th>
+                <td colSpan="12" align='left' >{key}</td>
                 <td>{data9["Mcu_Info"][key]}</td>
               </tr>
             ))}
-      
+              </td>
+              </tr>
+             
+            </table>
+
       <OATable property={signalProperties} data={data9.signals} title={"I2C Signals"}/>
       <OATable property={signalProperties1} data={data9.Splmnufsignals} title={"Manufacturing Signals"}/>
       <OATable property={signalProperties2} data={data9.Spldbgsignals} title={"Debug Signals"}/>
         </div>}
-
-
-
-
 
 {/* MB Display Data */}
         {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&

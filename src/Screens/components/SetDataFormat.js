@@ -424,6 +424,7 @@ function SetDataFormat() {
         >
           double-Hex_8b{" "}
         </button>
+       
         <button
           onClick={reversedoubleToHex}
           style={{ marginLeft: "10px", marginRight: "10px",background:"#FF5c26", color:'white' }}
@@ -494,7 +495,7 @@ function SetDataFormat() {
           backgroundColor: "#f1f1f1",
         }}
       >
-        <p1 style={{ color: "red" }}>
+        <p style={{ color: "red" }}>
         <button onClick={clearLastAppendedData} style={{  marginRight: "10px",background:"green", color:'white' }}>Clear Last Appended Data</button>
         <button onClick={clearAppendData} style={{ marginLeft: "10px", marginRight: "10px",background:"green", color:'white' }}>Clear Data</button>
         <button onClick={saveAppendedData} style={{ marginLeft: "10px", marginRight: "10px",background:"green", color:'white' }}>Save Data</button>
@@ -505,7 +506,7 @@ function SetDataFormat() {
             27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49
             50 51 52 53 54 55 56 57 58 59 60 61 62 63
           </b>
-        </p1>
+        </p>
         <br />
         {appendedData.map((result, index) => (
             <span key={index}>{result} </span>
