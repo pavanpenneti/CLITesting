@@ -660,7 +660,7 @@ function LogData() {
     }
     console.log(signedInt)
     const totalSeconds = Math.floor(signedInt / 1000);
-    console.log(totalSeconds)
+    console.log('seconds',+totalSeconds)
     const daysValue = Math.floor(signedInt / (24 * 3600));
     
     const hoursValue = Math.floor((signedInt % (24 * 3600)) / 3600);

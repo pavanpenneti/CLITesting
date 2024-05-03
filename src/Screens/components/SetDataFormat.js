@@ -292,7 +292,9 @@ function SetDataFormat() {
 
  const saveDataToNotepad =(event)=>{
         event.preventDefault(); 
-        const data = addappendData.join('\n');
+        const data1 = addappendData.join('\n');
+        const data = data1.replace(/,/g, '')
+        console.log(data);
         const blob = new Blob([data], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);      
         const a = document.createElement('a');

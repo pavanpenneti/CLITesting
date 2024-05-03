@@ -1,8 +1,9 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect} from 'react';
 import axios from 'axios';
 import {CustomTable,CustomTable1, OATable, SpectrumTable} from '../../buttonscreen/CustomTable';
 import styles from "../../css/CustomTable.module.css";
 import { Link } from 'react-router-dom';
+
 
 function FetchData() {
   const [data, setData] = useState({});
@@ -19,6 +20,7 @@ function FetchData() {
   const [serialNo, setSerialNo] = useState("");
   const ipaddress =`http://${ipAddress}`;
   const serialno= serialNo;
+  const [timestamp, setTimestamp] = useState(new Date());
 
 
   const getUSBDevices= async () =>{
@@ -39,10 +41,12 @@ function FetchData() {
         axios.get(`${ipaddress}/getamplifierprofiles?ipaddress=${serialno}&slotno=1`),
         axios.get(`${ipaddress}/getactivitylog?ipaddress=${serialno}&slotno=1`)
       ]);
+      
       setData(response1.data);
       setData1(response2.data);
       setData3(response3.data);
       console.log(data3)
+      setTimestamp(new Date());
     } catch (error) { 
       console.error(error);
     } }
@@ -52,6 +56,10 @@ function FetchData() {
         setData9(response1.data);
     }
   };
+  useEffect(() => {
+    // Update timestamp once when the component mounts
+    setTimestamp(new Date());
+  }, []); 
 
    const  handleSelectChange = (event) => {
     const newValue = event.target.value;
@@ -252,20 +260,23 @@ const rendersplTableRows = () => {
       {"  "}  
        <button type="submit" onClick={refresh} >Get Info</button>{"  "}  
        <button type="submit" onClick={refresh} >Refresh</button>  {"  "} 
+       
        <button>
         <Link to="/LogData">Log Data</Link>
       </button>
       <button>
         <Link to="/CLIData">CLI Data</Link>
       </button>
-      <button>
+      <button style={{marginRight: '350px'}}>
         <Link to="/SetDataFormat">SET Data </Link>
       </button>
+      {timestamp.toLocaleString('en-IN', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true }).replace(/(\d+:\d+:\d+)( [ap]m)/, '$1 PM')}
       {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
        <div style={{marginLeft: '350px'}}>
        <button type="submit" onClick={dsSpectrumData} >DS Spectrum Data</button> 
        <button type="submit" onClick={usSpectrumData} >US Spectrum Data</button>   </div>}
          </form>
+
          {/* DR Data  */}
          {isVisible && (serialNo.startsWith("DR") ) &&
           <div style={{position: 'relative', top:'25px'}}>
@@ -348,8 +359,11 @@ const rendersplTableRows = () => {
 {/* MB Display Data */}
         {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
         <div style={{position: 'relative', top:'55px'}}>
-        {(Object.keys(data).length>0 )  && <div className={styles.tables} style={{alignItems:'baseline', border:"1px solid black" }}>       
+          
+        {(Object.keys(data).length>0 )  && <div className={styles.tables} style={{alignItems:'baseline', border:"1px solid black" }}>   
+        
             {tables.map((data) => (
+              
                 <CustomTable className={styles.table} title={data.title} data={data.data}/>
               ))   }     
               {tables1.map((data) => (
@@ -366,6 +380,13 @@ const rendersplTableRows = () => {
      </div>
      </div>
   );
+
+
+
+
 }
+
+
+
 
 export default FetchData;
