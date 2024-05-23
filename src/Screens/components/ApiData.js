@@ -15,6 +15,8 @@ function FetchData() {
   const [data7, setData7] = useState({});
   const [data8, setData8] = useState([]);
   const [data9, setData9] = useState([]);
+  const [data10, setData10] = useState([]);
+  const [data11, setData11] = useState([]);
   const [isVisible] = useState(true);
   const [ipAddress, setIpAddress] = useState('');
   const [serialNo, setSerialNo] = useState("");
@@ -66,6 +68,36 @@ function FetchData() {
     setSerialNo(newValue);   
     console.log(newValue);
   };
+
+  const dspowerlevels = async () => { 
+    try {
+      const response = await fetch(`${ipaddress}/powerLevelStatus?ipaddress=${serialno}&slotno=1&subslotno=0&stream=DS`); // Replace <API_ENDPOINT> with the actual API endpoint
+      const jsonData = await response.json();
+      const firstFiveEntries = Object.entries(jsonData).slice(0, 6);
+      const formattedData = firstFiveEntries.reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {});
+      setData10(formattedData);
+    }catch (error) { 
+      console.error(error);
+     
+  }}
+
+  const uspowerlevels = async () => { 
+    try {
+      const response = await fetch(`${ipaddress}/powerLevelStatus?ipaddress=${serialno}&slotno=1&subslotno=0&stream=US`); // Replace <API_ENDPOINT> with the actual API endpoint
+      const jsonData = await response.json();
+      const firstEntries = Object.entries(jsonData).slice(0, 2);
+      const formattedData = firstEntries.reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {});
+      setData11(formattedData);
+    }catch (error) { 
+      console.error(error);
+     
+  }}
 
   const usSpectrumData = async () => { 
     try {
@@ -120,7 +152,10 @@ function FetchData() {
     { startKey: "byActivityLogStatus", endKey: "bySpecStatus" },
     { startKey: "bySpecStatus", endKey: "byNodeIdAmplifIdStatus" },
     { startKey: "byNodeIdAmplifIdStatus", endKey: "byPwrLvlStatus" },
-    { startKey: "byPwrLvlStatus", endKey: "siCardType" },
+    { startKey: "byPwrLvlStatus", endKey: "byAlmProfStatus" },
+    { startKey: "byAlmProfStatus", endKey: "bySysStat" },
+    { startKey: "bySysStat", endKey: "bySetupRecStatus" },
+    { startKey: "bySetupRecStatus", endKey: "siCardType" },
     
   ];
  const keys1 =[{ startKey: "byIAPNum", endKey: "strIAPname" }]
@@ -143,7 +178,7 @@ function FetchData() {
  }
  
 const result1 = [];
-for (let index = 0; index < 18; index++) {
+for (let index = 0; index < 21; index++) {
   result1.push(results(data, keys[index].startKey, keys[index].endKey));
 }
 const result2 = [];
@@ -169,6 +204,10 @@ const tables= [
   {"title":"0x2E", "data":result1[15]},
   {"title":"0x2F", "data":result1[16]},
   {"title":"0x39", "data":result1[17]},
+  {"title":"0x30", "data":result1[18]},
+  {"title":"0x3A", "data":result1[19]},
+  {"title":"0x3C", "data":result1[20]},
+ 
   
 ]
 
@@ -272,9 +311,11 @@ const rendersplTableRows = () => {
       </button>
       {timestamp.toLocaleString('en-IN', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true }).replace(/(\d+:\d+:\d+)( [ap]m)/, '$1 PM')}
       {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
-       <div style={{marginLeft: '350px'}}>
+       <div style={{marginLeft: '200px'}}>
        <button type="submit" onClick={dsSpectrumData} >DS Spectrum Data</button> 
-       <button type="submit" onClick={usSpectrumData} >US Spectrum Data</button>   </div>}
+       <button type="submit" onClick={usSpectrumData} >US Spectrum Data</button>  
+       <button type="submit" onClick={dspowerlevels} >DS Power Levels</button> 
+       <button type="submit" onClick={uspowerlevels} >US Power Levels</button> </div>}
          </form>
 
          {/* DR Data  */}
@@ -361,7 +402,11 @@ const rendersplTableRows = () => {
         <div style={{position: 'relative', top:'55px'}}>
           
         {(Object.keys(data).length>0 )  && <div className={styles.tables} style={{alignItems:'baseline', border:"1px solid black" }}>   
-        
+        {<div className={styles.tables1} style={{alignItems:'baseline, border:"1px solid black'}}>
+                <CustomTable title={"DS Pwr Lvls(0x39)"} data={data10}/>
+                <CustomTable title={"Us Pwr Lvls(0x39)"} data={data11}/>
+                
+          </div> } 
             {tables.map((data) => (
               
                 <CustomTable className={styles.table} title={data.title} data={data.data}/>
@@ -371,10 +416,12 @@ const rendersplTableRows = () => {
               ))   }        
           </div>}
 
-          {<div className={styles.tables1} style={{alignItems:'baseline'}}>
+          {<div className={styles.tables1} style={{alignItems:'baseline, border:"1px solid black'}}>
                 <SpectrumTable title={"Downstream Graph"} data={data5}/>
                 <SpectrumTable title={"Upstream Graph"} data={data6}/>
+                
           </div> } 
+        
         </div>
 }
      </div>
