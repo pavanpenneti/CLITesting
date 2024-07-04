@@ -17,6 +17,8 @@ function FetchData() {
   const [data9, setData9] = useState([]);
   const [data10, setData10] = useState([]);
   const [data11, setData11] = useState([]);
+  const [data12, setData12] = useState([],[]);
+  const [data13, setData13] = useState({});
   const [isVisible] = useState(true);
   const [ipAddress, setIpAddress] = useState('');
   const [serialNo, setSerialNo] = useState("");
@@ -126,7 +128,20 @@ function FetchData() {
       }   catch (error) { 
       console.error(error);
     } }
- 
+
+    const  dsInputSpectrumData =  async () => {
+      try {
+      const response = await fetch(`${ipaddress}/getdnspectstatus?ipaddress=${serialno}&slotno=1&subslotno=0&stream=DSIN&strtFreqncy=10`); // Replace <API_ENDPOINT> with the actual API endpoint
+      const jsonData = await response.json(); 
+      const extractedData1 = jsonData[0]; 
+          setData13([extractedData1]);
+          console.log(data7)
+      const extractedData = jsonData[1]; 
+      setData12(Object.keys(extractedData).map((key) => extractedData[key]));
+        }   catch (error) { 
+        console.error(error);
+      } }
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (ipAddress && serialNo) {
@@ -137,21 +152,24 @@ function FetchData() {
   const keys = [
     { startKey: "siCardType", endKey: "siHardwareRev1" },
     { startKey: "siHardwareRev1", endKey: "byStatus" },
-    { startKey: "byStatus", endKey: "supportStatus" },
+    { startKey: "byStatus", endKey: "supportStatus" },    
     { startKey: "supportStatus", endKey: "bIsModuleID" },
     { startKey: "bIsModuleID", endKey: "alarm_summary" },
-    { startKey: "byScrtchpadStatus", endKey: "bySysStatus" },
+    { startKey: "byScrtchpadStatus", endKey: "bySerModStatus" },
+    { startKey: "bySerModStatus", endKey: "bySysStatus" },
     { startKey: "bySysStatus", endKey: "byAmpStatus" },
     { startKey: "byAmpStatus", endKey: "byAlmStatus" },
     { startKey: "byAlmStatus", endKey: "byAlmThresStatus" },
     { startKey: "byAlmThresStatus", endKey: "byTranspOnlineStatus" },
-    { startKey: "byTranspOnlineStatus", endKey: "byDsAGCMode" },
+    { startKey: "byTranspOnlineStatus", endKey: "byNameType" },
+    { startKey: "byNameType", endKey: "byDsAGCMode" },
     { startKey: "byDsAGCMode", endKey: "byAlmThresholdStatus"  },
     { startKey: "byAlmThresholdStatus", endKey: "byLocaltimeStatus" },
     { startKey: "byLocaltimeStatus", endKey: "byActivityLogStatus" },
     { startKey: "byActivityLogStatus", endKey: "bySpecStatus" },
     { startKey: "bySpecStatus", endKey: "byNodeIdAmplifIdStatus" },
-    { startKey: "byNodeIdAmplifIdStatus", endKey: "byPwrLvlStatus" },
+    { startKey: "byNodeIdAmplifIdStatus", endKey: "byAddrsStatus" },
+    { startKey: "byAddrsStatus", endKey: "byPwrLvlStatus" },
     { startKey: "byPwrLvlStatus", endKey: "byAlmProfStatus" },
     { startKey: "byAlmProfStatus", endKey: "bySysStat" },
     { startKey: "bySysStat", endKey: "bySetupRecStatus" },
@@ -178,35 +196,39 @@ function FetchData() {
  }
  
 const result1 = [];
-for (let index = 0; index < 21; index++) {
+for (let index = 0; index < 24; index++) {
   result1.push(results(data, keys[index].startKey, keys[index].endKey));
 }
 const result2 = [];
 for (let index = 0; index < 5; index++) {
   result2.push(results1(data2[index], keys1[0].startKey, keys1[0].endKey));
 }
+
 const tables= [
   {"title":"0x10", "data":result1[0]},
   {"title":"0x41", "data":result1[1]},
   {"title":"0x45", "data":result1[2]},
   {"title":"0x48", "data":result1[3]},
   {"title":"Extra Fields", "data":result1[4]},
-  {"title":"0x24, 0x1D", "data":result1[5]},
-  {"title":"0x25", "data":result1[6]},
-  {"title":"0x26", "data":result1[7]},
-  {"title":"0x27", "data":result1[8]},
-  {"title":"0x28", "data":result1[9]},
-  {"title":"0x29", "data":result1[10]},
-  {"title":"0x2A", "data":result1[11]},
-  {"title":"0x2B", "data":result1[12]},
-  {"title":"0x2C", "data":result1[13]},
-  {"title":"0x2D", "data":result1[14]},
-  {"title":"0x2E", "data":result1[15]},
-  {"title":"0x2F", "data":result1[16]},
-  {"title":"0x39", "data":result1[17]},
-  {"title":"0x30", "data":result1[18]},
-  {"title":"0x3A", "data":result1[19]},
-  {"title":"0x3C", "data":result1[20]},
+  {"title":"0x1D", "data":result1[5]},
+  {"title":"0x24", "data":result1[6]},
+  {"title":"0x25", "data":result1[7]},
+  {"title":"0x26", "data":result1[8]},
+  {"title":"0x27", "data":result1[9]},
+  {"title":"0x28", "data":result1[10]},
+  {"title":"0x29", "data":result1[11]},
+  {"title":"0x3B", "data":result1[12]},
+  {"title":"0x2A", "data":result1[13]},
+  {"title":"0x2B", "data":result1[14]},
+  {"title":"0x2C", "data":result1[15]},
+  {"title":"0x2D", "data":result1[16]},
+  {"title":"0x2E", "data":result1[17]},
+  {"title":"0x2F", "data":result1[18]},
+  {"title":"0x38", "data":result1[19]},
+  {"title":"0x39", "data":result1[20]},
+  {"title":"0x30", "data":result1[21]},
+  {"title":"0x3A", "data":result1[22]},
+  {"title":"0x3C", "data":result1[23]},
  
   
 ]
@@ -313,6 +335,7 @@ const rendersplTableRows = () => {
       {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
        <div style={{marginLeft: '200px'}}>
        <button type="submit" onClick={dsSpectrumData} >DS Spectrum Data</button> 
+       <button type="submit" onClick={dsInputSpectrumData} >DS Input Spectrum Data</button> 
        <button type="submit" onClick={usSpectrumData} >US Spectrum Data</button>  
        <button type="submit" onClick={dspowerlevels} >DS Power Levels</button> 
        <button type="submit" onClick={uspowerlevels} >US Power Levels</button> </div>}
@@ -403,8 +426,8 @@ const rendersplTableRows = () => {
           
         {(Object.keys(data).length>0 )  && <div className={styles.tables} style={{alignItems:'baseline', border:"1px solid black" }}>   
         {<div className={styles.tables1} style={{alignItems:'baseline, border:"1px solid black'}}>
-                <CustomTable title={"DS Pwr Lvls(0x39)"} data={data10}/>
-                <CustomTable title={"Us Pwr Lvls(0x39)"} data={data11}/>
+                <CustomTable title={"DS PWR Lvls(0x39)"} data={data10}/>
+                <CustomTable title={"US PWR Lvls(0x39)"} data={data11}/>
                 
           </div> } 
             {tables.map((data) => (
@@ -417,7 +440,8 @@ const rendersplTableRows = () => {
           </div>}
 
           {<div className={styles.tables1} style={{alignItems:'baseline, border:"1px solid black'}}>
-                <SpectrumTable title={"Downstream Graph"} data={data5}/>
+                <SpectrumTable title={"Downstream Output Graph"} data={data5}/>
+                <SpectrumTable title={"Downstream Input Graph"} data={data12}/>
                 <SpectrumTable title={"Upstream Graph"} data={data6}/>
                 
           </div> } 
