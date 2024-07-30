@@ -7,6 +7,7 @@ import FetchData from './Screens/components/ApiData';
 import CLIData from './Screens/components/CLIData';
 
 import SetDataFormat from './Screens/components/SetDataFormat';
+import DailyReport from './Screens/components/DailyReport';
 
 
 function App() {
@@ -23,10 +24,10 @@ function App() {
 				
 				<Route exact path='/logData' Component={LogData}></Route>
 				<Route exact path='/cliData' Component={CLIData}></Route>
-				<Route exact path='/setDataformat' Component={SetDataFormat}>
-
+				<Route exact path='/setDataformat' Component={SetDataFormat}></Route>
+				<Route exact path='/dailyReport' Component={DailyReport}></Route>
 				
-				</Route>
+				
 		</Routes>
 		
 	</Router>

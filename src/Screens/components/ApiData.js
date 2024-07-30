@@ -328,9 +328,14 @@ const rendersplTableRows = () => {
       <button>
         <Link to="/CLIData">CLI Data</Link>
       </button>
-      <button style={{marginRight: '350px'}}>
+      
+      <button>
         <Link to="/SetDataFormat">SET Data </Link>
       </button>
+      <button  style={{marginRight: '350px'}} >
+        <Link to="/dailyReport">Daily Report </Link>
+      </button>
+      
       {timestamp.toLocaleString('en-IN', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true }).replace(/(\d+:\d+:\d+)( [ap]m)/, '$1 PM')}
       {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
        <div style={{marginLeft: '200px'}}>
