@@ -675,7 +675,12 @@ function LogData() {
     const characterslength = inputText.length;
     setResult(characterslength);
   };
-
+ 
+  const NoOfWords = (event) => {
+    event.preventDefault();
+    const wordslength = inputText.trim().split(/\s+/).filter(Boolean).length;
+    setResult(wordslength);
+  };
   return (
     <div>
       <div
@@ -880,6 +885,17 @@ function LogData() {
           }}
         >
           No. of Characters{" "}
+        </button>
+        <button
+          onClick={NoOfWords}
+          style={{
+            marginLeft: "10px",
+            marginRight: "10px",
+            background: "green",
+            color: "white",
+          }}
+        >
+          No. of Words{" "}
         </button>
         <br />
         <button

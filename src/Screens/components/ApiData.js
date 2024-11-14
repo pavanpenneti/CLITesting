@@ -25,6 +25,10 @@ function FetchData() {
   const ipaddress =`http://${ipAddress}`;
   const serialno= serialNo;
   const [timestamp, setTimestamp] = useState(new Date());
+  const [inputData, setInputData] = useState('');
+    const [cardType, setCardType] = useState('');
+    const [responseData, setResponseData] = useState(null);
+    const [showResponse, setShowResponse] = useState(false); 
 
 
   const getUSBDevices= async () =>{
@@ -60,6 +64,30 @@ function FetchData() {
         setData9(response1.data);
     }
   };
+
+  const handleInputChange = (e) => {
+    setInputData(e.target.value);
+};
+
+// Update card type whenever the user types in the card type textbox
+const handleCardTypeChange = (e) => {
+    setCardType(e.target.value);
+};
+
+// Function to send POST request with inputData and cardType included
+const postData = async () => {
+      try {
+        const response = await axios.post(`http://${ipAddress}/setcmsdata?deviceid=${serialno}&cardtype=${cardType}&slotno=1&data=${inputData}`);
+        setResponseData(response.data);
+        setShowResponse(true);
+    } catch (error) {
+        console.error('Error posting data:', error);
+    }
+};
+const toggleResponseVisibility = () => {
+  setShowResponse(prev => !prev);  // Toggle visibility of response
+};
+
   useEffect(() => {
     // Update timestamp once when the component mounts
     setTimestamp(new Date());
@@ -301,7 +329,7 @@ const rendersplTableRows = () => {
     <div>
     <div style={{backgroundColor:"#D8DAE3"}}>
     
-       <form onSubmit={handleSubmit} style={{paddingLeft:'300px',position: 'fixed', zIndex:1, backgroundColor:"#D8DAE3", width: '100%',  }}>
+       <form onSubmit={handleSubmit} style={{paddingLeft:'10px',position: 'fixed', zIndex:1, backgroundColor:"#D8DAE3", width: '100%',  }}>
        <label>
         IP address:{"  "}   
         <input type="text" value={ipAddress} onChange={(e) => setIpAddress(e.target.value)} />
@@ -332,10 +360,35 @@ const rendersplTableRows = () => {
       <button>
         <Link to="/SetDataFormat">SET Data </Link>
       </button>
-      <button  style={{marginRight: '350px'}} >
+      <button   >
         <Link to="/dailyReport">Daily Report </Link>
       </button>
-      
+      <button  >
+        <Link to="/snmpData">SNMP Data </Link>
+      </button>
+      <input 
+                type="text" 
+                value={inputData} 
+                onChange={handleInputChange} 
+                placeholder="Enter data"
+            />
+            <input 
+                type="text" 
+                value={cardType} 
+                onChange={handleCardTypeChange} 
+                placeholder="CardType"
+                style={{width: "60px"}}
+            />
+            <button onClick={postData} >Submit</button>
+            <button onClick={toggleResponseVisibility}>
+                {showResponse ? 'Hide Response' : 'Show Response'}
+            </button>
+            {showResponse && responseData && (
+                <div>
+                    <h3>Response:</h3>
+                    <pre>{JSON.stringify(responseData, null, 2)}</pre>
+                </div>
+            )}
       {timestamp.toLocaleString('en-IN', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true }).replace(/(\d+:\d+:\d+)( [ap]m)/, '$1 PM')}
       {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
        <div style={{marginLeft: '200px'}}>
@@ -344,6 +397,7 @@ const rendersplTableRows = () => {
        <button type="submit" onClick={usSpectrumData} >US Spectrum Data</button>  
        <button type="submit" onClick={dspowerlevels} >DS Power Levels</button> 
        <button type="submit" onClick={uspowerlevels} >US Power Levels</button> </div>}
+
          </form>
 
          {/* DR Data  */}
@@ -413,6 +467,15 @@ const rendersplTableRows = () => {
               <tr key={key}>
                 <td colSpan="12" align='left' >{key}</td>
                 <td>{data9["Mcu_Info"][key]}</td>
+              </tr>
+            ))}
+              </td>
+              <td style={{ textAlign: 'left',verticalAlign: 'top'}}>
+              <b>Advanced Diagnostics(0x28)</b><br/>
+            {(Object.keys(data9).length>0 )  && Object.keys(data9["Ingress_Info"]).map(key => (
+              <tr key={key}>
+                <td colSpan="12" align='left' >{key}</td>
+                <td>{data9["Ingress_Info"][key]}</td>
               </tr>
             ))}
               </td>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./DailyReport.css";
+import axios from 'axios';
 
 function DailyReport() {
   const [reports, setReports] = useState([]);
@@ -12,7 +13,7 @@ function DailyReport() {
   const [customReport, setCustomReport] = useState("");
   const [selectedField, setSelectedField] = useState("");
   const [textareaValue, setTextareaValue] = useState("");
-
+  const [data, setData] = useState({});
   const fields = [
     "JIRA TT's Added",
     "JIRA TT's Modified",
@@ -29,6 +30,7 @@ function DailyReport() {
     "Firmware Testing",
     "Documentation",
   ];
+ 
 
   const addReport = (report) => setReports([...reports, report]);
 
@@ -315,6 +317,7 @@ function DailyReport() {
         >
           Customize SET
         </button>
+       
       </div>
     
     </div>
@@ -322,9 +325,12 @@ function DailyReport() {
         {reports.map((report, index) => (
           <div key={index} className="report-item">
             {report}
+          
           </div>
+            
         ))}
       </div>
+    
     </div>
   );
 }
