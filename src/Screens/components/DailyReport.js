@@ -1,36 +1,35 @@
-import React, { useState } from "react";
-import "./DailyReport.css";
+import React, { useState } from 'react';
+import './DailyReport.css';
 import axios from 'axios';
 
 function DailyReport() {
   const [reports, setReports] = useState([]);
-  const [version, setVersion] = useState("9.02.04");
-  const [system, setSystem] = useState("EMS");
-  const [installerVersion, setInstallerVersion] = useState("24.07.02");
-  const [fwVersion, setFwVersion] = useState("2.32");
-  const [mbInstallerVersion, setMbInstallerVersion] = useState("24.07.02");
-  const [mbFwVersion, setMbFwVersion] = useState("4.22");
-  const [customReport, setCustomReport] = useState("");
-  const [selectedField, setSelectedField] = useState("");
-  const [textareaValue, setTextareaValue] = useState("");
+  const [version, setVersion] = useState('9.02.04');
+  const [system, setSystem] = useState('EMS');
+  const [installerVersion, setInstallerVersion] = useState('24.07.02');
+  const [fwVersion, setFwVersion] = useState('2.32');
+  const [mbInstallerVersion, setMbInstallerVersion] = useState('24.07.02');
+  const [mbFwVersion, setMbFwVersion] = useState('4.22');
+  const [customReport, setCustomReport] = useState('');
+  const [selectedField, setSelectedField] = useState('');
+  const [textareaValue, setTextareaValue] = useState('');
   const [data, setData] = useState({});
   const fields = [
     "JIRA TT's Added",
     "JIRA TT's Modified",
-    "JIRA Tested & Closed",
-    "Test Track Added",
-    "Test Track Modified",
-    "Test Track Closed",
-    "CMS Testing",
-    "CMS Installer",
-    "API Testing",
-    "Automation Testing",
-    "Test Build Issues",
-    "Enhancements",
-    "Firmware Testing",
-    "Documentation",
+    'JIRA Tested & Closed',
+    'Test Track Added',
+    'Test Track Modified',
+    'Test Track Closed',
+    'CMS Testing',
+    'CMS Installer',
+    'API Testing',
+    'Automation Testing',
+    'Test Build Issues',
+    'Enhancements',
+    'Firmware Testing',
+    'Documentation',
   ];
- 
 
   const addReport = (report) => setReports([...reports, report]);
 
@@ -70,7 +69,7 @@ function DailyReport() {
     const report = (
       <div key={`oa-${reports.length}`} className="report">
         <p>
-          OA Testing with installer ({installerVersion}) with FW Version:{" "}
+          OA Testing with installer ({installerVersion}) with FW Version:{' '}
           {fwVersion}:<br />
           ================================================================================
           <br />
@@ -136,7 +135,7 @@ function DailyReport() {
 
   const addCustomReport = () => {
     if (customReport.trim()) {
-      const lines = customReport.split("\n");
+      const lines = customReport.split('\n');
       const report = (
         <div key={`custom-${reports.length}`} className="report">
           {lines.map((line, index) => (
@@ -147,17 +146,17 @@ function DailyReport() {
         </div>
       );
       addReport(report);
-      setCustomReport(""); // Clear the text area after adding the report
+      setCustomReport(''); // Clear the text area after adding the report
     }
   };
 
   const addFieldReport = () => {
     if (selectedField && textareaValue.trim()) {
-      const separator = "=".repeat(selectedField.length);
+      const separator = '='.repeat(selectedField.length);
 
       const report = (
         <div key={`${selectedField}-${reports.length}`} className="report">
-          <p style={{ whiteSpace: "pre-wrap" }}>
+          <p style={{ whiteSpace: 'pre-wrap' }}>
             {selectedField}:<br />
             {separator}
             <br />
@@ -166,171 +165,170 @@ function DailyReport() {
         </div>
       );
       addReport(report);
-      setTextareaValue(""); // Clear the textarea after adding the report
+      setTextareaValue(''); // Clear the textarea after adding the report
     }
   };
 
   return (
     <div>
-    <div style={{     position: "fixed",
-        padding: "2px 0",
-        width: "100%",
-        color: "black",
-        top: 0,
-        marginLeft: "0px",
-        backgroundColor: "#f1f1f1", }}>
-      <input
-        style={{ marginRight: 3, marginLeft: 170 }}
-        type="text"
-        placeholder="Installer Version"
-        value={version}
-        onChange={(e) => setVersion(e.target.value)}
-      />
-      <select
-        style={{ height: 23, width: 120, marginRight: 3 }}
-        value={system}
-        onChange={(e) => setSystem(e.target.value)}
+      <div
+        style={{
+          position: 'fixed',
+          padding: '2px 0',
+          width: '100%',
+          color: 'black',
+          top: 0,
+          marginLeft: '0px',
+          backgroundColor: '#f1f1f1',
+        }}
       >
-        <option value="CMS">CMS</option>
-        <option value="EMS">EMS</option>
-        <option value="OTS">OTS</option>
-        <option value="Opti-Trace Server">Opti-Trace Server</option>
-      </select>
-      <button
-        style={{ marginRight: 3, background: "green", color: "white" }}
-        type="button"
-        className="set-button"
-        onClick={installer}
-      >
-        Installer SET
-      </button>
-      <input
-        style={{ marginRight: 3 }}
-        type="text"
-        placeholder="OA4544D Installer Version"
-        value={installerVersion}
-        onChange={(e) => setInstallerVersion(e.target.value)}
-      />
-      <input
-        style={{ marginRight: 3 }}
-        type="text"
-        placeholder="Enter Firmware Version"
-        value={fwVersion}
-        onChange={(e) => setFwVersion(e.target.value)}
-      />
-
-      <button
-        style={{ marginRight: 3, background: "green", color: "white" }}
-        type="button"
-        className="set-button"
-        onClick={oaTestingReport}
-      >
-        OA SET
-      </button>
-      <input
-        type="text"
-        placeholder="MB180 Installer Version"
-        value={mbInstallerVersion}
-        onChange={(e) => setMbInstallerVersion(e.target.value)}
-      />
-      <input
-        style={{ marginRight: 3 }}
-        type="text"
-        placeholder="Enter Firmware Version"
-        value={mbFwVersion}
-        onChange={(e) => setMbFwVersion(e.target.value)}
-      />
-
-      <button
-        type="button"
-        style={{ marginRight: 3, background: "green", color: "white" }}
-        className="set-button"
-        onClick={mbBleTestingReport}
-      >
-        MB180 SET
-      </button>
-      <button
-        type="button"
-        style={{ marginRight: 3, background: "red", color: "white" }}
-        onClick={removeLastReport}
-      >
-        Remove Last Appended Data
-      </button>
-      <button
-        type="button"
-        style={{ marginRight: 3, background: "red", color: "white" }}
-        onClick={clearReports}
-      >
-        Clear
-      </button>
-      <div>
+        <input
+          style={{ marginRight: 3, marginLeft: 170 }}
+          type="text"
+          placeholder="Installer Version"
+          value={version}
+          onChange={(e) => setVersion(e.target.value)}
+        />
         <select
-          style={{ height: 23, marginLeft: 150, marginRight: 3, width: 150 }}
-          id="field-select"
-          value={selectedField}
-          onChange={(e) => setSelectedField(e.target.value)}
+          style={{ height: 23, width: 120, marginRight: 3 }}
+          value={system}
+          onChange={(e) => setSystem(e.target.value)}
         >
-          <option value="">Select a field</option>
-          {fields.map((field, index) => (
-            <option key={index} value={field}>
-              {field}
-            </option>
-          ))}
+          <option value="CMS">CMS</option>
+          <option value="EMS">EMS</option>
+          <option value="OTS">OTS</option>
+          <option value="Opti-Trace Server">Opti-Trace Server</option>
         </select>
-
-        <textarea
-          style={{ marginRight: 3, width: 500 }}
-          id="field-textarea"
-          placeholder="Select Field Type and Enter ........"
-          value={textareaValue}
-          onChange={(e) => setTextareaValue(e.target.value)}
-          rows="4"
-          cols="50"
-          className="textarea"
+        <button
+          style={{ marginRight: 3, background: 'green', color: 'white' }}
+          type="button"
+          className="set-button"
+          onClick={installer}
+        >
+          Installer SET
+        </button>
+        <input
+          style={{ marginRight: 3 }}
+          type="text"
+          placeholder="OA4544D Installer Version"
+          value={installerVersion}
+          onChange={(e) => setInstallerVersion(e.target.value)}
+        />
+        <input
+          style={{ marginRight: 3 }}
+          type="text"
+          placeholder="Enter Firmware Version"
+          value={fwVersion}
+          onChange={(e) => setFwVersion(e.target.value)}
         />
 
         <button
-          style={{ marginRight: 3, background: "green", color: "white" }}
+          style={{ marginRight: 3, background: 'green', color: 'white' }}
           type="button"
           className="set-button"
-          onClick={addFieldReport}
+          onClick={oaTestingReport}
         >
-          Field SET
+          OA SET
         </button>
-
-        {/* Custom Report */}
-
-        <textarea
-          style={{ marginRight: 3, width: 500 }}
-          placeholder="Customize ....."
-          value={customReport}
-          onChange={(e) => setCustomReport(e.target.value)}
-          rows="4"
-          cols="50"
+        <input
+          type="text"
+          placeholder="MB180 Installer Version"
+          value={mbInstallerVersion}
+          onChange={(e) => setMbInstallerVersion(e.target.value)}
+        />
+        <input
+          style={{ marginRight: 3 }}
+          type="text"
+          placeholder="Enter Firmware Version"
+          value={mbFwVersion}
+          onChange={(e) => setMbFwVersion(e.target.value)}
         />
 
         <button
           type="button"
-          style={{ marginRight: 3, background: "green", color: "white" }}
+          style={{ marginRight: 3, background: 'green', color: 'white' }}
           className="set-button"
-          onClick={addCustomReport}
+          onClick={mbBleTestingReport}
         >
-          Customize SET
+          MB180 SET
         </button>
-       
+        <button
+          type="button"
+          style={{ marginRight: 3, background: 'red', color: 'white' }}
+          onClick={removeLastReport}
+        >
+          Remove Last Appended Data
+        </button>
+        <button
+          type="button"
+          style={{ marginRight: 3, background: 'red', color: 'white' }}
+          onClick={clearReports}
+        >
+          Clear
+        </button>
+        <div>
+          <select
+            style={{ height: 23, marginLeft: 150, marginRight: 3, width: 150 }}
+            id="field-select"
+            value={selectedField}
+            onChange={(e) => setSelectedField(e.target.value)}
+          >
+            <option value="">Select a field</option>
+            {fields.map((field, index) => (
+              <option key={index} value={field}>
+                {field}
+              </option>
+            ))}
+          </select>
+
+          <textarea
+            style={{ marginRight: 3, width: 500 }}
+            id="field-textarea"
+            placeholder="Select Field Type and Enter ........"
+            value={textareaValue}
+            onChange={(e) => setTextareaValue(e.target.value)}
+            rows="4"
+            cols="50"
+            className="textarea"
+          />
+
+          <button
+            style={{ marginRight: 3, background: 'green', color: 'white' }}
+            type="button"
+            className="set-button"
+            onClick={addFieldReport}
+          >
+            Field SET
+          </button>
+
+          {/* Custom Report */}
+
+          <textarea
+            style={{ marginRight: 3, width: 500 }}
+            placeholder="Customize ....."
+            value={customReport}
+            onChange={(e) => setCustomReport(e.target.value)}
+            rows="4"
+            cols="50"
+          />
+
+          <button
+            type="button"
+            style={{ marginRight: 3, background: 'green', color: 'white' }}
+            className="set-button"
+            onClick={addCustomReport}
+          >
+            Customize SET
+          </button>
+        </div>
       </div>
-    
-    </div>
-    <div style={{marginTop:110}}>
+      <div style={{ marginTop: 110 }}>
         {reports.map((report, index) => (
           <div key={index} className="report-item">
             {report}
-          
           </div>
-            
         ))}
       </div>
-    
     </div>
   );
 }

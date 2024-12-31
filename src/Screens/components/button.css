@@ -2,17 +2,16 @@
 
 /* Style for the primary button */
 .primary-button {
-    background-color: #007bff; /* Primary color */
-    color: white; /* Text color */
-    padding: 10px 20px; /* Padding inside the button */
-    border: none; /* Remove button border */
-    cursor: pointer; /* Show pointer cursor on hover */
-    border-radius: 4px; /* Rounded corners */
-    transition: background-color 0.3s ease; /* Smooth color transition on hover */
-  
-    /* Hover effect */
-    &:hover {
-      background-color: #0056b3; /* Darker shade on hover */
-    }
+  background-color: #007bff; /* Primary color */
+  color: white; /* Text color */
+  padding: 10px 20px; /* Padding inside the button */
+  border: none; /* Remove button border */
+  cursor: pointer; /* Show pointer cursor on hover */
+  border-radius: 4px; /* Rounded corners */
+  transition: background-color 0.3s ease; /* Smooth color transition on hover */
+
+  /* Hover effect */
+  &:hover {
+    background-color: #0056b3; /* Darker shade on hover */
   }
-  
+}
