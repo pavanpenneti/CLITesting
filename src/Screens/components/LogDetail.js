@@ -55,13 +55,18 @@ const LogDetail = () => {
   };
 
   const searchData = async () => {
+    // Split the input data by newline and trim each line
     const lines = inputData.split("\n").map((line) => line.trim());
     const processedResults = [];
+  
+    // Process each line
     lines.forEach((line) => {
       if (line.startsWith("Rx:") || line.startsWith("RX:")) {
         const message = line.split(":")[1].trim();
         const listData = message.split(" ");
-        if (listData[4] === "C1") {
+        
+        // Ensure listData has enough elements to avoid errors
+        if (listData.length >= 8 && listData[4] === "C1") {
           const eighthByte = listData[7];
           processedResults.push({
             rawRx: message,
@@ -70,20 +75,18 @@ const LogDetail = () => {
         }
       }
     });
-    const filtered = [];
-    processedResults.forEach((result) => {
-      const { rawRx } = result;
-      let matchIndex = rawRx.indexOf(searchQuery);
-      while (matchIndex !== -1) {
-        filtered.push(result);
-        matchIndex = rawRx.indexOf(searchQuery, matchIndex + 1);
-      }
-    });
+    const filtered = processedResults.filter((result, index) => {
+      // Extract characters from index 26 to 27
+      const chars26and27 = result.rawRx.substring(21, 23); 
+      console.log(chars26and27)// Assuming `result.rawRx` holds the string
+      return chars26and27.includes(searchQuery); // Check if searchQuery is present in the substring
+    })
     if (filtered.length > 0) {
       const filteredData = filtered.map((item) => `Rx: ${item.rawRx}`).join("\n");
       setInputData(filteredData);
     } else {
       setInputData(""); 
+      console.log(filtered.length)
     }
     setIsDataUpdated(true);
   };

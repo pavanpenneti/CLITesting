@@ -1,0 +1,14 @@
+# netlify.toml
+# Configuration for Netlify deployment
+
+[build]
+  base = ""                # Default build directory (leave empty if not using a subdirectory)
+  publish = "dist"         # Output directory (e.g., `dist` for a typical build)
+  command = "npm run build" # Build command (adjust as needed for your project)
+
+[[redirects]]
+# Wildcard Proxy Rule for Backend API Requests
+from = "/getlogdata/*"     # Path to match requests
+to = "http://:splat"       # Proxy to dynamic backend
+status = 200               # Proxy status
+force = true               # Ensure the rule is enforced

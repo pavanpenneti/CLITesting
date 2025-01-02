@@ -13,6 +13,7 @@ import {
 
 function LogData() {
   const [data, setData] = useState('');
+  const [text, setText] = useState("");
   const [searchQuery, setSearchQuery] = useState('');
   const [ipAddress, setIpAddress] = useState('');
   const [inputText, setInputText] = useState('');
@@ -728,6 +729,9 @@ function LogData() {
       alert(error.message);
     }
   };
+  const handleChangeText = (event) => {
+    setText(event.target.value);  // Update the state with the new value
+  };
   return (
     <div>
       <div
@@ -864,10 +868,26 @@ function LogData() {
         <br />
 
         {/* Adding logic for conversion  */}
-
+        <div>
+        <textarea
+        rows="1"
+          cols="10"
+        id="inputText"
+        value={text}  // Set the value of textarea to the state value
+        onChange={handleChangeText}  // Call handleChange when the user types
+        placeholder="Enter text here..."
+        style={{
+          width: '95%',
+          padding: '0px',
+          marginBottom: '1px',
+          fontFamily: 'monospace',
+          marginLeft: '10px'
+        }}
+      ></textarea>
+      </div>
         <input
           type="text"
-          style={{ marginLeft: '500px', marginRight: '10px' }}
+          style={{ marginRight: '10px', marginLeft: '500px'  }}
           placeholder="Conversion Text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
@@ -1210,7 +1230,7 @@ function LogData() {
         style={{
           position: 'fixed',
           marginRight: '8px',
-          top: 90,
+          top: 120,
           width: '100%',
           color: 'white',
           backgroundColor: '#f1f1f1',
@@ -1225,6 +1245,7 @@ function LogData() {
             63
           </b>
         </p1>
+        
       </div>
       <pre style={{ textAlign: 'left', padding: '22px 7px' }}>
         {[...Array(5)].map((_, index) => (
@@ -1239,6 +1260,27 @@ function LogData() {
           </div>
         ))}
       </pre>
+        <div
+          id="displayText"
+          style={{
+            whiteSpace: "pre-wrap", 
+            wordWrap: "break-word", 
+          padding: '0px 7px',
+          textAlign: 'left',
+            fontFamily: 'monospace'
+          }}
+        >
+        
+        {text.split('\n').map((line, index) => (
+          <div key={index}>
+            {line.startsWith('Tx') && <br />}
+            {start > 0 && end > 0
+              ? applyColorToText(line)
+              : addRedColorToCharacters(line)}
+          </div>
+        ))}
+          
+        </div>
     </div>
   );
 }
