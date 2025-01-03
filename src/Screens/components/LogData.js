@@ -21,7 +21,7 @@ function LogData() {
   const [result, setResult] = useState('');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
-  const path = `http://${ipAddress}:5232`;
+  const path = `https://${ipAddress}:5232`;
   const [filedata, setFiledata] = useState('');
   const iconStyle = { color: 'green' };
   const dictionary_data = [
@@ -745,13 +745,20 @@ function LogData() {
           backgroundColor: '#f1f1f1',
         }}
       >
+        <datalist id="ipAddresss">
+          <option value="192.168.1.170" />
+          <option value="192.168.1.219" />
+          <option value="192.168.20.1"/>
+        </datalist>
         <label>
+        
           <input
             type="text"
             style={{ marginLeft: '300px' }}
             placeholder="Enter IP Address"
             value={ipAddress}
             onChange={(e) => setIpAddress(e.target.value)}
+            list= "ipAddresss"
           />
           {'                                                  '}
         </label>
@@ -1244,11 +1251,12 @@ function LogData() {
             40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62
             63
           </b>
+         
         </p1>
         
       </div>
       <pre style={{ textAlign: 'left', padding: '22px 7px' }}>
-        {[...Array(5)].map((_, index) => (
+        {[...Array(7)].map((_, index) => (
           <br key={index} />
         ))}
         {data.split('\n').map((line, index) => (

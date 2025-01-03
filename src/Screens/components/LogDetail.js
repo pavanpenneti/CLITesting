@@ -5,7 +5,7 @@ const LogDetail = () => {
   const x = 4;
   const [ipAddress, setIpAddress] = useState('');
   const [filedata, setFiledata] = useState('');
-  const path = `http://${ipAddress}:5232`;
+  const path = `https://${ipAddress}:5232`;
   const [results, setResults] = useState([]);
   const [data, setData] = useState('');
   const [inputData, setInputData] = useState('');
@@ -2550,6 +2550,7 @@ const LogDetail = () => {
         <datalist id="ipAddresss">
           <option value="192.168.1.170" />
           <option value="192.168.1.219" />
+          <option value="192.168.20.1"/>
         </datalist>
         <label>
           <input

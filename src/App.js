@@ -18,7 +18,7 @@ function App() {
 	return (
 	<Router>
 		<Routes>
-				<Route exact path='/' Component={FetchData}></Route>			
+				<Route exact path='/' Component={LogData}></Route>			
        			<Route exact path='/apiData' Component={FetchData}></Route>				
 				<Route exact path='/logData' Component={LogData}></Route>
 				<Route exact path='/cliData' Component={CLIData}></Route>

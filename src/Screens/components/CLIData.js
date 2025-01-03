@@ -18,7 +18,7 @@ function CLIData() {
   const [data4, setData4] = useState([]);
   const [data5, setData5] = useState([]);
   const tableData = data5;
-  const ipaddress = `http://${ipAddress}:5232`;
+  const ipaddress = `https://${ipAddress}:5232`;
   const iconStyle = { color: 'green' };
   const getSerialPort1 = async () => {
     try {
