@@ -415,8 +415,8 @@ const rendersplTableRows = () => {
         </Link>
       </button>
       <button style={{marginLeft:"2px", marginRight:"2px"}}>
-        <Link to="/snmpData">
-          <FontAwesomeIcon icon={faNetworkWired} size="1.5x" style={iconStyle} title="SNMP Data" />
+        <Link to="/diagnosticstool">
+          <FontAwesomeIcon icon={faNetworkWired} size="1.5x" style={iconStyle} title="Diagnostics Tool" />
         </Link>
       </button>
  

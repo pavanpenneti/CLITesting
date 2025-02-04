@@ -650,7 +650,7 @@ function LogData() {
     setResult(value);
   };
 
-  const Display_units = (event) => {
+  const Display_units = (event) => {  
     event.preventDefault();
     const hexWithoutSpaces = inputText.replace(/\s/g, '');
     const decimalNumber = parseInt(hexWithoutSpaces, 16).toString();
@@ -725,6 +725,15 @@ function LogData() {
       const checksum = totalSum > 0xff ? totalSum % 0xff : totalSum;
       const checksumHex = checksum.toString(16).toUpperCase().padStart(2, '0');
       setResult(checksumHex);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+  const splitHex = (event) => {
+    event.preventDefault();
+    try {
+      const normalizedInput = inputText.match(/.{1,2}/g)?.join(' ') || '';; // Remove all spaces  
+      setResult(normalizedInput);
     } catch (error) {
       alert(error.message);
     }
@@ -843,12 +852,12 @@ function LogData() {
           </Link>
         </button>
         <button style={{ marginLeft: '2px' }}>
-          <Link to="/snmpData">
+          <Link to="/diagnosticstool">
             <FontAwesomeIcon
               icon={faNetworkWired}
               size="1.5x"
               style={iconStyle}
-              title="SNMP Data"
+              title="Diagnostics tool"
             />
           </Link>
         </button>
@@ -929,9 +938,20 @@ function LogData() {
 
         <br />
         <button
+          onClick={splitHex}
+          style={{
+            marginLeft: '300px',
+            marginRight: '10px',
+            background: 'green',
+            color: 'white',
+          }}
+        >
+          Split Hex{' '}
+        </button>
+        <button
           onClick={reverseData}
           style={{
-            marginLeft: '400px',
+            marginLeft: '10px',
             marginRight: '10px',
             background: 'green',
             color: 'white',
@@ -1050,6 +1070,7 @@ function LogData() {
         >
           Checksum{' '}
         </button>
+        
         <br />
         <button
           onClick={convertToHex}

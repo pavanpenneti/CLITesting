@@ -8,8 +8,8 @@ import CLIData from './Screens/components/CLIData';
 import LogDetail from './Screens/components/LogDetail';
 import SetDataFormat from './Screens/components/SetDataFormat';
 import DailyReport from './Screens/components/DailyReport';
-import snmpData from './Screens/components/snmpData';
-import SnmpData from './Screens/components/snmpData';
+
+import DiagnosticsTool from './Screens/components/DiagnosticsTool';
 
 
 function App() {
@@ -24,7 +24,8 @@ function App() {
 				<Route exact path='/cliData' Component={CLIData}></Route>
 				<Route exact path='/setDataformat' Component={SetDataFormat}></Route>
 				<Route exact path='/dailyReport' Component={DailyReport}></Route>
-				<Route exact path='/snmpData' Component={SnmpData}></Route>
+			
+				<Route exact path='/diagnosticstool' Component={DiagnosticsTool}></Route>
 				<Route exact path='/logDataDetail' Component={LogDetail}></Route>
 				
 		</Routes>

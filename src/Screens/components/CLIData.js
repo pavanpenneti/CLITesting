@@ -182,12 +182,12 @@ function CLIData() {
           </Link>
         </button>
         <button style={{ marginLeft: '2px' }}>
-          <Link to="/snmpData">
+          <Link to="/diagnosticstool">
             <FontAwesomeIcon
               icon={faNetworkWired}
               size="1.5x"
               style={iconStyle}
-              title="SNMP Data"
+              title="Diagnostics tool"
             />
           </Link>
         </button>
