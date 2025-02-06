@@ -563,7 +563,10 @@ const DiagnosticsTool = () => {
 
   const saveDataToNotepad = () => {
     let filename = window.prompt('Enter filename:', 'DiagnosticData');
-    filename = filename ? filename.trim() : 'DiagnosticData';
+    if (!filename || filename.trim() === "") {
+      return; 
+  }
+  filename = filename.trim();
     if (!filename.endsWith('.txt')) {
       filename += '.txt';
     }
