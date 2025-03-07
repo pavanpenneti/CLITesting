@@ -755,9 +755,11 @@ function LogData() {
         }}
       >
         <datalist id="ipAddresss">
+        <option value="10.27.105.99"/>
           <option value="192.168.1.170" />
           <option value="192.168.1.219" />
           <option value="192.168.20.1"/>
+          
         </datalist>
         <label>
         
@@ -772,6 +774,7 @@ function LogData() {
           {'                                                  '}
         </label>
         <datalist id="fileSuggestions">
+        <option value="C:\Users\Sw-Lab\PycharmProjects\Amplifier_API\cmslog.txt" />
           <option value="/storage/emulated/0/Download/cmstxrx.log" />
           <option value="/home/dongle/cada-server/cmslog.txt" />
           <option value="C:\Program Files (x86)\CommScope\Opti-Trace Server\cmslog.txt" />

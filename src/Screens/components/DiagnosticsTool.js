@@ -4,6 +4,7 @@ const DiagnosticsTool = () => {
   const [logData, setLogData] = useState('00 00 00 00 ');
   const [result, setResult] = useState([]);
   const [appendData, setAppendData] = useState([]);
+  const [formattedJSON, setFormattedJSON] = useState('');
   const [rows, setRows] = useState([
     {
       varByte: '',
@@ -30,6 +31,7 @@ const DiagnosticsTool = () => {
     'Binary',
     '~Binary',
     'Time',
+    "Time_ms",
     'No. of Characters',
     'No. of Words',
     'Checksum',
@@ -50,6 +52,7 @@ const DiagnosticsTool = () => {
     'Hex_4b_Float',
     '~Hex_4b_Float',
   ];
+  
   const getTimestamp = () => {
     const now = new Date();
     return now.toLocaleString(); // Formats as "MM/DD/YYYY, HH:MM:SS AM/PM"
@@ -292,6 +295,37 @@ const DiagnosticsTool = () => {
     const hoursValue = Math.floor((signedInt % (24 * 3600)) / 3600);
     const minutesValue = Math.floor((signedInt % 3600) / 60);
     const secondsValue = signedInt % 60;
+    const time_data =
+      daysValue +
+      ' days ' +
+      hoursValue +
+      ' hours ' +
+      minutesValue +
+      ' mins ' +
+      secondsValue +
+      ' secs';
+    return time_data;
+  };
+  const Display_time_ms = (data) => {
+    const hexWithoutSpaces = data.replace(/\s/g, '');
+    const byteArray = [];
+    for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
+      byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
+    }
+    //byteArray.reverse();
+
+    let signedInt = 0;
+    for (let i = 0; i < byteArray.length; i++) {
+      signedInt |= byteArray[i] << (i * 8);
+    }
+
+    const totalSeconds = Math.floor(signedInt)*0.01;
+    console.log('Modified seconds:', totalSeconds);
+    
+    const daysValue = Math.floor(totalSeconds / (24 * 3600));
+    const hoursValue = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+    const minutesValue = Math.floor((totalSeconds % 3600) / 60);
+    const secondsValue = Math.abs(totalSeconds % 60);
     const time_data =
       daysValue +
       ' days ' +
@@ -582,7 +616,45 @@ const DiagnosticsTool = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+   
+  const generateJSONcode = () => {
+    const jsonData = [
+      {
+        label: 'Input',
+        value: `listData.join(' ')`,
+        databyte: ' '
+      },
+      {
+        label: 'Msg No',
+        value: `listData.slice(x + 3, x + 4).join('')`,
+        rawData: `listData.slice(x + 3, x + 4).join(' ')`,
+        databyte: '3 byte'
+      },
+      ...result.map(row => ({
+        label: row.varByte,
+        value: 
+  ["splitBytetoBit", "convert2Values", "convert3Values", "convert6Values", "convert7Values"].includes(row.methodName)
+    ? `${row.methodName}(listData, x + ${row.startByte}, ${row.extraTextBoxes.map(box => box).join(", ")})`
+    : (row.startByte === row.endByte 
+        ? `${row.methodName}(listData.slice(x + ${row.startByte}, x + ${parseInt(row.endByte) + 1}))` 
+        : `${row.methodName}(listData, x + ${row.startByte}, x + ${parseInt(row.endByte)}))`
+      ),
+        rawData: `listData.slice(x + ${row.startByte}, x + ${parseInt(row.endByte) + 1}).join(' ')`,
+        databyte: row.startByte === row.endByte ? `${row.startByte} byte` : `${row.startByte} to ${row.endByte} bytes`
+      }))
+    ];
+    console.log(JSON.stringify(jsonData, null, 2)  // Indented and pretty-printed with 2 spaces.
+      .replace(/"(\w+)":/g, '$1:')  // Remove quotes from keys
+      .replace(/value:\s*"([^"]+)"/g, 'value: $1')  // Remove quotes from value
+      .replace(/rawData:\s*"([^"]+)"/g, 'rawData: $1')  // Remove quotes from rawData
+      .replace(/\n\s*\n/g, '\n')  // Remove extra empty lines between objects
+      .replace(/(\{.*?\})/g, '$1\n'));  // Ensure each object starts and ends with braces on a new line
 
+    
+  
+   return jsonData;
+  };
+  
   const handleSet = () => {
     const localTime = getTimestamp();
     const output = rows.map((row) => {
@@ -592,119 +664,155 @@ const DiagnosticsTool = () => {
         .split(' ')
         .slice(start, end + 1)
         .join(' ');
-      let processedData;
+      let processedData, methodName;
       switch (row.selectedOption) {
         case 'date':
-          processedData = date(slicedData); // Example for Merge: remove spaces
-          break;
+            methodName = 'date';
+            processedData = date(slicedData); // Example for Merge: remove spaces
+            break;
         case 'Version':
-          processedData = ConvertDotData(slicedData); // Example for Merge: remove spaces
-          break;
-
+            methodName = 'ConvertDotData';
+            processedData = ConvertDotData(slicedData); // Example for Merge: remove spaces
+            break;
         case 'Split Byte to Bit':
-          processedData = splitBytetoBit(slicedData, row); // Example for Merge: remove spaces
-          break;
+            methodName = 'splitBytetoBit';
+            processedData = splitBytetoBit(slicedData, row); // Example for Merge: remove spaces
+            break;
         case 'Split 2 Values':
-          processedData = convert2Values(slicedData, row); // Example for Merge: remove spaces
-          break;
+            methodName = 'convert2Values';
+            processedData = convert2Values(slicedData, row); // Example for Merge: remove spaces
+            break;
         case 'Split 3 Values':
-          processedData = convert3Values(slicedData, row); // Example for Merge: remove spaces
-          break;
+            methodName = 'convert3Values';
+            processedData = convert3Values(slicedData, row); // Example for Merge: remove spaces
+            break;
         case 'Split 6 Values':
-          processedData = convert6Values(slicedData, row); // Example for Merge: remove spaces
-          break;
+            methodName = 'convert6Values';
+            processedData = convert6Values(slicedData, row); // Example for Merge: remove spaces
+            break;
         case 'Split 7 Values':
-          processedData = convert7Values(slicedData, row); // Example for Merge: remove spaces
-          break;
+            methodName = 'convert7Values';
+            processedData = convert7Values(slicedData, row); // Example for Merge: remove spaces
+            break;
         case 'Split Hex':
-          processedData = splitHex(slicedData, row); // Example for Merge: remove spaces
-          break;
+            methodName = 'splitHex';
+            processedData = splitHex(slicedData, row); // Example for Merge: remove spaces
+            break;
         case 'Reverse':
-          processedData = reverseData(slicedData);
-          break;
+            methodName = 'reverseData';
+            processedData = reverseData(slicedData);
+            break;
         case 'Reverse & Merge':
-          processedData = reverseMergeData(slicedData); // Reverse and remove spaces
-          break;
+            methodName = 'reverseMergeData';
+            processedData = reverseMergeData(slicedData); // Reverse and remove spaces
+            break;
         case 'Decimal':
-          processedData = convertToDecimal(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'convertToDecimal';
+            processedData = convertToDecimal(slicedData); // Convert hex to decimal
+            break;
         case '~Decimal':
-          processedData = convertToDecimalReverse(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'convertToDecimalReverse';
+            processedData = convertToDecimalReverse(slicedData); // Convert hex to decimal
+            break;
         case 'Binary':
-          processedData = ConvertToBinary(slicedData);
-          break;
+            methodName = 'ConvertToBinary';
+            processedData = ConvertToBinary(slicedData);
+            break;
         case '~Binary':
-          processedData = ConvertToBinaryReverse(slicedData); // Reverse and remove spaces
-          break;
+            methodName = 'ConvertToBinaryReverse';
+            processedData = ConvertToBinaryReverse(slicedData); // Reverse and remove spaces
+            break;
         case 'Time':
-          processedData = Display_time(slicedData); // Example for Merge: remove spaces
-          break;
+            methodName = 'time';
+            processedData = Display_time(slicedData); // Example for Merge: remove spaces
+            break;
+        case 'Time_ms':
+            methodName = 'time_ms';
+            processedData = Display_time_ms(slicedData); // Example for Merge: remove spaces
+              break;
         case 'No. of Characters':
-          processedData = NoOfCharacters(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'NoOfCharacters';
+            processedData = NoOfCharacters(slicedData); // Convert hex to decimal
+            break;
         case 'No. of Words':
-          processedData = NoOfWords(slicedData); // Reverse and remove spaces
-          break;
+            methodName = 'NoOfWords';
+            processedData = NoOfWords(slicedData); // Reverse and remove spaces
+            break;
         case 'Checksum':
-          processedData = checksum(slicedData); // Example for Merge: remove spaces
-          break;
+            methodName = 'checksum';
+            processedData = checksum(slicedData); // Example for Merge: remove spaces
+            break;
         case 'Hex-ASCII':
-          processedData = convertToHex(slicedData); // Example for Merge: remove spaces
-          break;
+            methodName = 'ConvertLongDataHex';
+            processedData = convertToHex(slicedData); // Example for Merge: remove spaces
+            break;
         case '~Hex-ASCII':
-          processedData = convertToHexInReverse(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'ConvertLongDataHextoReverse';
+            processedData = convertToHexInReverse(slicedData); // Convert hex to decimal
+            break;
         case 'Hex_1b_uInt':
-          processedData = convertTofloat(slicedData);
-          break;
+            methodName = 'convertTofloat';
+            processedData = convertTofloat(slicedData);
+            break;
         case 'Hex_1b_Int':
-          processedData = convertTofloat2(slicedData); // Reverse and remove spaces
-          break;
-
+            methodName = 'convertTofloat2';
+            processedData = convertTofloat2(slicedData); // Reverse and remove spaces
+            break;
         case 'Hex_2b_Int':
-          processedData = signedconvertToInt2Byte(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'signedconvertToInt2Byte';
+            processedData = signedconvertToInt2Byte(slicedData); // Convert hex to decimal
+            break;
         case '~Hex_2b_Int':
-          processedData = signedconvertToInt2ByteReverse(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'signedconvertToInt2ByteReverse';
+            processedData = signedconvertToInt2ByteReverse(slicedData); // Convert hex to decimal
+            break;
         case 'Hex_2b_uInt':
-          processedData = convertToInt2(slicedData);
-          break;
+            methodName = 'convertToInt2';
+            processedData = convertToInt2(slicedData);
+            break;
         case '~Hex_2b_uInt':
-          processedData = convertToInt2Reverse(slicedData); // Reverse and remove spaces
-          break;
+            methodName = 'convertToInt2Reverse';
+            processedData = convertToInt2Reverse(slicedData); // Reverse and remove spaces
+            break;
         case 'Hex_4b_uInt':
-          processedData = convertToInt4Byte(slicedData); // Example for Merge: remove spaces
-          break;
+            methodName = 'convertToInt4Byte';
+            processedData = convertToInt4Byte(slicedData); // Example for Merge: remove spaces
+            break;
         case '~Hex_4b_uInt':
-          processedData = convertToInt4ByteReverse(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'convertToInt4ByteReverse';
+            processedData = convertToInt4ByteReverse(slicedData); // Convert hex to decimal
+            break;
         case 'Hex_4b_Int':
-          processedData = signedconvertToInt4Byte(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'signedconvertToInt4Byte';
+            processedData = signedconvertToInt4Byte(slicedData); // Convert hex to decimal
+            break;
         case '~Hex_4b_Int':
-          processedData = signedconvertToInt4ByteReverse(slicedData); // Convert hex to decimal
-          break;
-
+            methodName = 'signedconvertToInt4ByteReverse';
+            processedData = signedconvertToInt4ByteReverse(slicedData); // Convert hex to decimal
+            break;
         case 'Hex_4b_Float':
-          processedData = convertTofloattwoByte(slicedData);
-          break;
+            methodName = 'convertTofloattwoByte';
+            processedData = convertTofloattwoByte(slicedData);
+            break;
         case '~Hex_4b_Float':
-          processedData = convertTofloattwoByteReverse(slicedData); // Reverse and remove spaces
-          break;
+            methodName = 'convertTofloattwoByteReverse';
+            processedData = convertTofloattwoByteReverse(slicedData); // Reverse and remove spaces
+            break;
         case 'Hex_8b_Int':
-          processedData = convertHexToDouble(slicedData); // Example for Merge: remove spaces
-          break;
+            methodName = 'convertHexToDouble';
+            processedData = convertHexToDouble(slicedData); // Example for Merge: remove spaces
+            break;
         case '~Hex_8b_Int':
-          processedData = reverseconvertHexToDouble(slicedData); // Convert hex to decimal
-          break;
+            methodName = 'reverseconvertHexToDouble';
+            processedData = reverseconvertHexToDouble(slicedData); // Convert hex to decimal
+            break;
         default:
-          processedData = slicedData; // Default: no operation
-          break;
-      }
+            processedData = slicedData; // Default: no operation
+            break;
+    }
       return {
         ...row,
+        methodName,
         processedData,
         slicedData,
         localTime,
@@ -1013,11 +1121,31 @@ const DiagnosticsTool = () => {
               border: 'none',
               cursor: 'pointer',
               transition: 'background-color 0.3s',
+              marginRight: '5px'
             }}
             onMouseOver={(e) => (e.target.style.backgroundColor = '#0056b3')}
             onMouseOut={(e) => (e.target.style.backgroundColor = '#007BFF')}
           >
             SET
+          </button>
+          <button
+            onClick={generateJSONcode}
+            style={{
+              padding: '5px 10px',
+              fontSize: '12px',
+              borderRadius: '5px',
+              backgroundColor: '#007BFF',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s',
+              
+            }}
+            onMouseOver={(e) => (e.target.style.backgroundColor = '#0056b3')}
+            onMouseOut={(e) => (e.target.style.backgroundColor = '#007BFF')}
+            title="Generated JSON Code in Inspect Console"
+          >
+            Generate JSON Code
           </button>
         </div>
         {result.length > 0 && (
@@ -1060,6 +1188,9 @@ const DiagnosticsTool = () => {
                 </div>
               ))}
             </div>
+            <div>
+      
+    </div>
           </div>
         )}
       </div>

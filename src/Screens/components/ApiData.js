@@ -52,13 +52,13 @@ function FetchData() {
   } 
 
   const refresh = async () => {
-    if (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) {
+    if (serialNo.startsWith("MB") || serialNo.startsWith("BLE") || serialNo.startsWith("XPR")) {
     try {
        
       const [response1, response2,response3] = await Promise.all([
         axios.get(`${ipaddress}/getcmsslotinfo?ipaddress=${serialno}&slotno=1&subslotno=0`),
         axios.get(`${ipaddress}/getamplifierprofiles?ipaddress=${serialno}&slotno=1`),
-        axios.get(`${ipaddress}/getactivitylog?ipaddress=${serialno}&slotno=1`)
+        //axios.get(`${ipaddress}/getactivitylog?ipaddress=${serialno}&slotno=1`)
       ]);
       
       setData(response1.data);
@@ -91,6 +91,7 @@ const postData = async () => {
         const response = await axios.post(`http://${ipAddress}/setcmsdata?deviceid=${serialno}&cardtype=${cardType}&slotno=1&data=${inputData}`);
         setResponseData(response.data);
         setShowResponse(true);
+        setTimestamp(new Date());
     } catch (error) {
         console.error('Error posting data:', error);
     }
@@ -101,7 +102,7 @@ const toggleResponseVisibility = () => {
 
   useEffect(() => {
     // Update timestamp once when the component mounts
-    setTimestamp(new Date());
+    //setTimestamp(new Date());
   }, []); 
 
    const  handleSelectChange = (event) => {
@@ -120,6 +121,7 @@ const toggleResponseVisibility = () => {
         return acc;
       }, {});
       setData10(formattedData);
+      setTimestamp(new Date());
     }catch (error) { 
       console.error(error);
      
@@ -135,6 +137,7 @@ const toggleResponseVisibility = () => {
         return acc;
       }, {});
       setData11(formattedData);
+      setTimestamp(new Date());
     }catch (error) { 
       console.error(error);
      
@@ -195,6 +198,11 @@ const toggleResponseVisibility = () => {
     { startKey: "supportStatus", endKey: "bIsModuleID" },
     { startKey: "bIsModuleID", endKey: "alarm_summary" },
     { startKey: "byScrtchpadStatus", endKey: "bySerModStatus" },
+    { startKey: "byFSKRxFreqDS", endKey: "byIAPStatus" },
+    { startKey: "byTransMSStatus", endKey: "bypad" },
+    { startKey: "bypad", endKey: "byTransStatus" },
+    { startKey: "byTransStatus", endKey: "byTranscfgStatus" },
+    { startKey: "byTranscfgStatus", endKey: "byFSKRxFreqDS" },  
     { startKey: "bySerModStatus", endKey: "bySysStatus" },
     { startKey: "bySysStatus", endKey: "byAmpStatus" },
     { startKey: "byAmpStatus", endKey: "byAlmStatus" },
@@ -213,6 +221,7 @@ const toggleResponseVisibility = () => {
     { startKey: "byAlmProfStatus", endKey: "bySysStat" },
     { startKey: "bySysStat", endKey: "bySetupRecStatus" },
     { startKey: "bySetupRecStatus", endKey: "siCardType" },
+    
     
   ];
  const keys1 =[{ startKey: "byIAPNum", endKey: "strIAPname" }]
@@ -235,7 +244,7 @@ const toggleResponseVisibility = () => {
  }
  
 const result1 = [];
-for (let index = 0; index < 24; index++) {
+for (let index = 0; index < 29; index++) {
   result1.push(results(data, keys[index].startKey, keys[index].endKey));
 }
 const result2 = [];
@@ -250,25 +259,30 @@ const tables= [
   {"title":"0x48", "data":result1[3]},
   {"title":"Extra Fields", "data":result1[4]},
   {"title":"0x1D", "data":result1[5]},
-  {"title":"0x24", "data":result1[6]},
-  {"title":"0x25", "data":result1[7]},
-  {"title":"0x26", "data":result1[8]},
-  {"title":"0x27", "data":result1[9]},
-  {"title":"0x28", "data":result1[10]},
-  {"title":"0x29", "data":result1[11]},
-  {"title":"0x3B", "data":result1[12]},
-  {"title":"0x2A", "data":result1[13]},
-  {"title":"0x2B", "data":result1[14]},
-  {"title":"0x2C", "data":result1[15]},
-  {"title":"0x2D", "data":result1[16]},
-  {"title":"0x2E", "data":result1[17]},
-  {"title":"0x2F", "data":result1[18]},
-  {"title":"0x38", "data":result1[19]},
-  {"title":"0x39", "data":result1[20]},
-  {"title":"0x30", "data":result1[21]},
-  {"title":"0x3A", "data":result1[22]},
-  {"title":"0x3C", "data":result1[23]},
- 
+  {"title":"0x12", "data":result1[6]},
+  {"title":"0x20", "data":result1[7]},
+  {"title":"0x21", "data":result1[8]},
+  {"title":"0x22", "data":result1[9]},
+  {"title":"0x23", "data":result1[10]},
+  {"title":"0x24", "data":result1[11]},
+  {"title":"0x25", "data":result1[12]},
+  {"title":"0x26", "data":result1[13]},
+  {"title":"0x27", "data":result1[14]},
+  {"title":"0x28", "data":result1[15]},
+  {"title":"0x29", "data":result1[16]},
+  {"title":"0x3B", "data":result1[17]},
+  {"title":"0x2A", "data":result1[18]},
+  {"title":"0x2B", "data":result1[19]},
+  {"title":"0x2C", "data":result1[20]},
+  {"title":"0x2D", "data":result1[21]},
+  {"title":"0x2E", "data":result1[22]},
+  {"title":"0x2F", "data":result1[23]},
+  {"title":"0x38", "data":result1[24]},
+  {"title":"0x39", "data":result1[25]},
+  {"title":"0x30", "data":result1[26]},
+  {"title":"0x3A", "data":result1[27]},
+  {"title":"0x3C", "data":result1[28]},
+
   
 ]
 
@@ -342,8 +356,14 @@ const rendersplTableRows = () => {
     
        <form onSubmit={handleSubmit} style={{paddingLeft:'10px',position: 'fixed', zIndex:1, backgroundColor:"#D8DAE3", width: '100%',  }}>
       
-        
-        <input type="text" style={{marginLeft:"300px"}} placeholder="Enter IP Address" value={ipAddress} onChange={(e) => setIpAddress(e.target.value)} />
+       <datalist id="ipAddresss">
+       <option value="10.27.105.99"/>
+          <option value="192.168.1.170" />
+          <option value="192.168.1.219" />
+          <option value="192.168.20.1"/>
+          
+        </datalist>
+        <input type="text" style={{marginLeft:"300px"}} placeholder="Enter IP Address" value={ipAddress} onChange={(e) => setIpAddress(e.target.value)} list= "ipAddresss"/>
        
       <button
       type="submit"
@@ -467,7 +487,7 @@ const rendersplTableRows = () => {
             
       {/* {timestamp.toLocaleString('en-IN', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true }).replace(/(\d+:\d+:\d+)( [ap]m)/, '$1 PM')} */}
       <span style={{color: "green", fontSize: "12px", marginLeft:"20%"}}>{formattedTimestamp}</span>
-      {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
+      {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE") || serialNo.startsWith("XPR")) &&
        <div style={{marginLeft: '350px'}}>
        <button type="submit" onClick={dsSpectrumData} >DS Spectrum Data</button> 
        <button type="submit" onClick={dsInputSpectrumData} >DS Input Spectrum Data</button> 
@@ -566,7 +586,7 @@ const rendersplTableRows = () => {
         </div>}
 
 {/* MB Display Data */}
-        {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE")) &&
+        {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE") || serialNo.startsWith("XPR")) &&
         <div style={{position: 'relative', top:'55px'}}>
           
         {(Object.keys(data).length>0 )  && <div className={styles.tables} style={{alignItems:'baseline', border:"1px solid black" }}>   
