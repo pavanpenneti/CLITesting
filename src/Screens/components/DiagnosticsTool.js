@@ -18,6 +18,7 @@ const DiagnosticsTool = () => {
   const options = [
     'date',
     'Version',
+    'Hardware Rev.',
     'Split Byte to Bit',
     'Split 2 Values',
     'Split 3 Values',
@@ -159,6 +160,18 @@ const DiagnosticsTool = () => {
     const data = `${data1}.${data2}`;
     return data;
   };
+  const hexToAscii = (hex) => {
+    return String.fromCharCode(parseInt(hex, 16)); 
+  };
+  const HardwareVer= (splitdata) => {
+    let hexBytes = splitdata.split(' ');
+    const data1 = hexToAscii(hexBytes[0]);
+    const data2 = hexToAscii(hexBytes[1]);
+    const data = `${data1}.${data2}`;
+    console.log(data);
+    return data;
+
+  };
   const convertToBinary = (hexValue) => {
     const binaryValue = parseInt(hexValue, 16).toString(2).padStart(8, '0');
     return binaryValue.split('').reverse().join('');
@@ -278,34 +291,26 @@ const DiagnosticsTool = () => {
   const Display_time = (data) => {
     const hexWithoutSpaces = data.replace(/\s/g, '');
     const byteArray = [];
+  
     for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
       byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
     }
-    byteArray.reverse();
-
+  
     let signedInt = 0;
     for (let i = 0; i < byteArray.length; i++) {
-      signedInt |= byteArray[i] << (i * 8);
+      signedInt += byteArray[i] << (i * 8);  // Correct bitwise shift approach
     }
-
-    const totalSeconds = Math.floor(signedInt / 1000);
-    console.log('seconds', +totalSeconds);
+  
     const daysValue = Math.floor(signedInt / (24 * 3600));
-
     const hoursValue = Math.floor((signedInt % (24 * 3600)) / 3600);
     const minutesValue = Math.floor((signedInt % 3600) / 60);
     const secondsValue = signedInt % 60;
-    const time_data =
-      daysValue +
-      ' days ' +
-      hoursValue +
-      ' hours ' +
-      minutesValue +
-      ' mins ' +
-      secondsValue +
-      ' secs';
-    return time_data;
+  
+    return `${daysValue} days ${hoursValue} hours ${minutesValue} mins ${secondsValue} secs`;
   };
+  
+
+  
   const Display_time_ms = (data) => {
     const hexWithoutSpaces = data.replace(/\s/g, '');
     const byteArray = [];
@@ -540,25 +545,26 @@ const DiagnosticsTool = () => {
   };
 
   const convertToInt2Reverse = (data) => {
-    // Remove any spaces and convert the hexadecimal input to a byte array
+    console.log("Hi I am here");
+
+    // Remove spaces from input data
     const hexWithoutSpaces = data.replace(/\s/g, '');
+    
+    // Convert hex string to a byte array
     const byteArray = [];
     for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
-      byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
+        byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
     }
 
     // Reverse the byte array
     byteArray.reverse();
 
     // Combine the bytes to form an unsigned integer
-    let unsignedInt = 0;
-    for (let i = 0; i < byteArray.length; i++) {
-      unsignedInt |= byteArray[i] << (i * 8);
-    }
+    let uSignInt = (byteArray[0] << 8) | byteArray[1]; 
 
-    // Set the unsigned integer output
-    return unsignedInt;
-  };
+    console.log(uSignInt);
+    return uSignInt;
+};
   const downloadJSON = (data, filename = 'data.json') => {
     const jsonString = JSON.stringify(data, null, 2); // Convert data to JSON string with formatting
     const blob = new Blob([jsonString], { type: 'application/json' }); // Create a Blob object
@@ -586,7 +592,7 @@ const DiagnosticsTool = () => {
             `(${nodeData['startByte']}...${nodeData['endByte']} bytes)`.padEnd(
               20
             ) +
-            nodeData['varByte'].toString().padEnd(35) +
+            nodeData['varByte'].toString().padEnd(80) +
             nodeData['processedData'].toString().padEnd(30) +
             `[${nodeData['slicedData']}]`
         )
@@ -673,6 +679,10 @@ const DiagnosticsTool = () => {
         case 'Version':
             methodName = 'ConvertDotData';
             processedData = ConvertDotData(slicedData); // Example for Merge: remove spaces
+            break;
+        case 'Hardware Rev.':
+            methodName = 'HardwareVer';
+            processedData = HardwareVer(slicedData); // Example for Merge: remove spaces
             break;
         case 'Split Byte to Bit':
             methodName = 'splitBytetoBit';
@@ -823,7 +833,16 @@ const DiagnosticsTool = () => {
 
     setAppendData((prevData) => [...prevData, output]);
   };
-
+  const splitHex1 = (event) => {
+    event.preventDefault();
+    try {
+      const normalizedInput = logData.match(/.{1,2}/g)?.join(' ') || '';;
+      console.log(normalizedInput) // Remove all spaces  
+      setLogData(normalizedInput)
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   const handleDownload = () => {
     let filename = window.prompt('Enter file name:', 'formData');
     if (!filename) return; // If user cancels, do nothing
@@ -855,7 +874,7 @@ const DiagnosticsTool = () => {
     <>
       <div
         style={{
-          maxWidth: '1600px',
+          maxWidth: '17000px',
           margin: '5px auto',
           padding: '12px',
           border: '1px solid #ddd',
@@ -893,6 +912,22 @@ const DiagnosticsTool = () => {
               marginRight: '5px',
             }}
           />
+           <button
+          onClick={splitHex1}
+          style={{
+            padding: '5px 7px',
+              fontSize: '11px',
+              borderRadius: '5px',
+            marginRight: '5 px',
+            background: '#28A745',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'background-color 0.3s',
+          }}
+        >
+          Split Hex{' '}
+        </button>
           <input type="file" accept=".json" onChange={handleFileUpload} />
           <button
             onClick={handleDownload}

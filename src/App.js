@@ -10,6 +10,8 @@ import SetDataFormat from './Screens/components/SetDataFormat';
 import DailyReport from './Screens/components/DailyReport';
 
 import DiagnosticsTool from './Screens/components/DiagnosticsTool';
+import LogDataNewProtocol from './Screens/components/LogDataNewProtocol';
+import SetDataFormatNewProtocol from './Screens/components/SetDataFormatNewProtocol';
 
 
 function App() {
@@ -19,10 +21,13 @@ function App() {
 	<Router>
 		<Routes>
 				<Route exact path='/' Component={LogData}></Route>			
-       			<Route exact path='/apiData' Component={FetchData}></Route>				
+       			<Route exact path='/apiData' Component={FetchData}></Route>			
+				<Route exact path='/logDataNewProtocol' Component={LogDataNewProtocol}></Route>		
 				<Route exact path='/logData' Component={LogData}></Route>
 				<Route exact path='/cliData' Component={CLIData}></Route>
 				<Route exact path='/setDataformat' Component={SetDataFormat}></Route>
+				<Route exact path='/SetDataFormatNewProtocol' Component={SetDataFormatNewProtocol}></Route>
+				
 				<Route exact path='/dailyReport' Component={DailyReport}></Route>
 			
 				<Route exact path='/diagnosticstool' Component={DiagnosticsTool}></Route>

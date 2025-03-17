@@ -11,7 +11,7 @@ import {
   faDatabase,
 } from '@fortawesome/free-solid-svg-icons';
 
-function LogData() {
+function LogDataNewProtocol() {
   const [data, setData] = useState('');
   const [text, setText] = useState("");
   const [searchQuery, setSearchQuery] = useState('');
@@ -255,9 +255,9 @@ function LogData() {
 
   const addRedColorToCharacters = (line) => {
     const characters = line.split('');
-    var x = 3;
-    var y = 19;
-    var z = y + 1;
+    var x = 1;
+    var y = 5   ;
+    var z = 10;
     characters[(x - 1) * 3 + y] = (
       <span key={(x - 1) * 3 + y} style={{ color: 'red' }}>
         {characters[(x - 1) * 3 + y]}
@@ -855,16 +855,6 @@ function LogData() {
           </Link>
         </button>
         <button style={{ marginLeft: '2px' }}>
-          <Link to="/SetDataFormatNewProtocol">
-            <FontAwesomeIcon
-              icon={faClipboard}
-              size="1.5x"
-              style={iconStyle}
-              title="Set Data Format New Protocol"
-            />
-          </Link>
-        </button>
-        <button style={{ marginLeft: '2px' }}>
           <Link to="/dailyReport">
             <FontAwesomeIcon
               icon={faCalendarAlt}
@@ -909,19 +899,23 @@ function LogData() {
         {/* Adding logic for conversion  */}
         <div>
         <textarea
-        rows="1"
-          cols="10"
+        rows="5 "
+          cols="10000"
         id="inputText"
         value={text}  // Set the value of textarea to the state value
         onChange={handleChangeText}  // Call handleChange when the user types
         placeholder="Enter text here..."
         style={{
-          width: '95%',
-          padding: '0px',
-          marginBottom: '1px',
-          fontFamily: 'monospace',
-          marginLeft: '10px'
-        }}
+            width: '95%',
+            padding: '0px',
+            marginBottom: '1px',
+            fontFamily: 'monospace',
+            marginLeft: '10px',
+            overflowX: 'auto',  // Enables horizontal scrolling
+            overflowY: 'hidden', // Prevents vertical scrolling (adjust as needed)
+            whiteSpace: 'nowrap', // Ensures text stays in a single line
+            resize: 'none' // Prevents manual resizing
+          }}
       ></textarea>
       </div>
         <input
@@ -1277,64 +1271,111 @@ function LogData() {
         <br />
       </div>
 
-      <div
-        style={{
-          position: 'fixed',
-          marginRight: '8px',
-          top: 120,
-          width: '100%',
-          color: 'white',
-          backgroundColor: '#f1f1f1',
-          padding: '1px 0',
-        }}
-      >
-        <p1 style={{ color: 'red', fontFamily: 'monospace' }}>
-          <b>
-            ::::::::::::::::::::01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16
-            17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
-            40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62
-            63
-          </b>
-         
-        </p1>
-        
+      <div style={{ 
+  position: 'fixed',
+  marginRight: '8px',
+  top: '180px', // Keeps it fixed at a certain point from top
+  width: '100%',
+  color: 'white',
+  backgroundColor: '#f1f1f1',
+  fontFamily: 'monospace',
+  whiteSpace: 'nowrap', // Prevents wrapping inside the div
+  overflowX: 'auto', // Enables horizontal scrolling
+  overflowY: 'auto', // Enables vertical scrolling
+  height: '650px', // Limits the height for vertical scrolling
+  padding: '5px'
+}}>
+
+  <p style={{ 
+    color: 'red', 
+    fontFamily: 'monospace', 
+    fontWeight: 'bold',
+    margin: 0, 
+    padding: '5px',
+    position: 'sticky',  // Makes it sticky
+    top: 0,  // Keeps it stuck at the top of the container
+    backgroundColor: '#f1f1f1' // Optional: gives a background color to differentiate the sticky element
+  }}>
+    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 
+    19 1A 1B 1C 1D 1E 1F 20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F 30 31 
+    32 33 34 35 36 37 38 39 3A 3B 3C 3D 3E 3F 40 41 42 43 44 45 46 47 48 49 4A 
+    4B 4C 4D 4E 4F 50 51 52 53 54 55 56 57 58 59 5A 5B 5C 5D 5E 5F 60 61 62 63 
+    64 65 66 67 68 69 6A 6B 6C 6D 6E 6F 70 71 72 73 74 75 76 77 78 79 7A 7B 7C 
+    7D 7E 7F 80 81 82 83 84 85 86 87 88 89 8A 8B 8C 8D 8E 8F 90 91 92 93 94 95 
+    96 97 98 99 9A 9B 9C 9D 9E 9F A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 AA AB AC AD AE 
+    AF B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 BA BB BC BD BE BF C0 C1 C2 C3 C4 C5
+  </p>
+  <p style={{ 
+    color: 'red', 
+    fontFamily: 'monospace', 
+    fontWeight: 'bold',
+    margin: 0, 
+    padding: '5px',
+    position: 'sticky',  // Makes it sticky
+    top: 0,  // Keeps it stuck at the top of the container
+    backgroundColor: '#f1f1f1' // Optional: gives a background color to differentiate the sticky element
+  }}>
+    00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+    27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52
+    53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78
+    79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 00 01 02 03 04
+    05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+    31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56
+    57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82
+    83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99
+  </p>
+
+
+  {/* <div style={{ 
+    display: 'inline-block', 
+    color: 'black', 
+    fontFamily: 'monospace', 
+    padding: '5px',
+    width: '100%' // Ensures the div takes full width for horizontal scrolling
+  }}> */}
+    {text.split("\n").map((line, index) => (
+      <div key={index} style={{ whiteSpace: 'nowrap', padding: '5px', color: 'black' }}>
+        {/* Each line will display in a separate div */}
+        {line.startsWith("Tx") && <br />}
+        {start > 0 && end > 0
+          ? applyColorToText(line)
+          : addRedColorToCharacters(line)}
       </div>
-      <pre style={{ textAlign: 'left', padding: '22px 7px' }}>
-        {[...Array(7)].map((_, index) => (
-          <br key={index} />
-        ))}
-        {data.split('\n').map((line, index) => (
-          <div key={index}>
-            {line.startsWith('Tx') && <br />}
-            {start > 0 && end > 0
-              ? applyColorToText(line)
-              : addRedColorToCharacters(line)}
-          </div>
-        ))}
-      </pre>
-        <div
-          id="displayText"
-          style={{
-            whiteSpace: "pre-wrap", 
-            wordWrap: "break-word", 
-          padding: '0px 7px',
-          textAlign: 'left',
-            fontFamily: 'monospace'
-          }}
-        >
-        
-        {text.split('\n').map((line, index) => (
-          <div key={index}>
-            {line.startsWith('Tx') && <br />}
-            {start > 0 && end > 0
-              ? applyColorToText(line)
-              : addRedColorToCharacters(line)}
-          </div>
-        ))}
-          
-        </div>
+    ))}
+  {/* </div> */}
+  <div style={{ 
+    display: 'inline-block', 
+    color: 'black', 
+    fontFamily: 'monospace', 
+    padding: '5px',
+    width: '100%' // Ensures the div takes full width for horizontal scrolling
+  }}>
+  <pre style={{ textAlign: 'left', padding: '22px 7px', whiteSpace: 'pre' }}>
+    {[...Array(7)].map((_, index) => (
+      <br key={index} />
+    ))}
+    {data.split('\n').map((line, index) => (
+      <div key={index} style={{ display: 'inline-block' }}>
+        {line.startsWith('Tx') && <br />}
+        {start > 0 && end > 0
+          ? applyColorToText(line)
+          : addRedColorToCharacters(line)}
+      </div>
+    ))}
+  </pre>
+</div>
+
+</div>
+
+
+
+
+
+
+
+
     </div>
   );
 }
 
-export default LogData;
+export default LogDataNewProtocol;
