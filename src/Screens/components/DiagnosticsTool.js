@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-
+import upload from '../../assets/images/upload.png';
 const DiagnosticsTool = () => {
   const [logData, setLogData] = useState('00 00 00 00 ');
   const [result, setResult] = useState([]);
   const [appendData, setAppendData] = useState([]);
   const [formattedJSON, setFormattedJSON] = useState('');
+  const [file, setFile] = useState(null);
   const [rows, setRows] = useState([
     {
       varByte: '',
@@ -53,7 +54,16 @@ const DiagnosticsTool = () => {
     'Hex_4b_Float',
     '~Hex_4b_Float',
   ];
-  
+  const handleFileUpload1 = (event) => {
+    const uploadedFile = event.target.files[0];
+    if (uploadedFile) {
+      setFile(uploadedFile);
+    }
+  };
+
+  const handleClick = () => {
+    document.getElementById("fileInput").click(); // Trigger click on the hidden file input
+  };
   const getTimestamp = () => {
     const now = new Date();
     return now.toLocaleString(); // Formats as "MM/DD/YYYY, HH:MM:SS AM/PM"
@@ -517,19 +527,24 @@ const DiagnosticsTool = () => {
   };
 
   const convertToInt4ByteReverse = (data) => {
+    // Remove spaces from the input hexadecimal string
     const hexWithoutSpaces = data.replace(/\s/g, '');
+  
+    // Create a byte array by parsing the hex string
     const byteArray = [];
     for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
       byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
     }
-    byteArray.reverse();
-
+  
+    // Now interpret the byteArray in little-endian order
     let unsignedInt = 0;
     for (let i = 0; i < byteArray.length; i++) {
-      unsignedInt |= byteArray[i] << (i * 8);
+      unsignedInt |= byteArray[i] << (i * 8); // Little-endian byte shifting
     }
+  
     return unsignedInt;
   };
+  
   const convertToInt2 = (data) => {
     // Remove any spaces and convert the hexadecimal input to an integer
     const hexWithoutSpaces = data.replace(/\s/g, '');
@@ -886,12 +901,15 @@ const DiagnosticsTool = () => {
         <p
           style={{
             color: 'red',
-            fontFamily: 'MS Shell Dlg',
-            fontSize: '11px',
+           //fontFamily: 'MS Shell Dlg',
+            
+    fontFamily: 'monospace', 
+    fontWeight: 'bold',
+            fontSize: '12px',
           }}
         >
           <b>
-            ''00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21
+            '00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21
             22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44
             45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63
           </b>
@@ -901,65 +919,90 @@ const DiagnosticsTool = () => {
           <input
             type="text"
             placeholder="Enter Log Data ..."
+             
             value={logData}
             onChange={(e) => setLogData(e.target.value)}
             style={{
-              width: '72%',
+              width: '82%',
               padding: '5px',
               fontSize: '12px',
               borderRadius: '5px',
               border: '1px solid #ccc',
+              fontFamily: 'monospace',
               marginRight: '5px',
             }}
-          />
-           <button
-          onClick={splitHex1}
-          style={{
-            padding: '5px 7px',
-              fontSize: '11px',
-              borderRadius: '5px',
-            marginRight: '5 px',
-            background: '#28A745',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s',
-          }}
-        >
-          Split Hex{' '}
-        </button>
-          <input type="file" accept=".json" onChange={handleFileUpload} />
-          <button
+          />  <span
+          role="img"
+          aria-label="split-hex"
+         onClick={splitHex1}
+         style={{
+                     cursor: 'pointer',
+                     transition: 'background-color 0.3s',
+          
+         }}
+       >
+         📄✂️ </span>
+             <span
+        onClick={handleClick}
+        style={{
+          cursor: 'pointer',
+          // width: '20px',
+          // height: '20px',
+          // display: 'inline-block', // Ensures width & height are respected
+          // backgroundSize: 'cover',
+          // backgroundImage: `url(${upload})`,
+          transition: 'background-color 0.3s',
+          fontSize: '20px'
+         
+        }}
+      >⬆️</span>
+
+      {/* Hidden file input */}
+      <input
+        id="fileInput"
+        type="file"
+        style={{ display: 'none' }} // Hide the default file input button
+        accept=".json"
+        onChange={handleFileUpload}
+      />
+      
+         
+          <span
             onClick={handleDownload}
             style={{
               padding: '5px 7px',
-              fontSize: '11px',
+              fontSize: '20px',
               borderRadius: '5px',
-              backgroundColor: '#28A745',
-              color: '#fff',
-              border: 'none',
+              //backgroundColor: '#28A745',
+              // color: '#fff',
+              // border: 'none',
               cursor: 'pointer',
               transition: 'background-color 0.3s',
-              marginRight: '5px',
+               
             }}
           >
-            Download JSON
-          </button>
-          <button
+            ⬇️
+ 
+          </span>
+          <span
             onClick={saveDataToNotepad}
             style={{
-              padding: '5px 7px',
-              fontSize: '11px',
-              borderRadius: '5px',
-              backgroundColor: '#28A745',
-              color: '#fff',
-              border: 'none',
+              // padding: '5px 7px',
+              fontSize: '20px',
+              // borderRadius: '5px',
+              // backgroundColor: '#28A745',
+              // color: '#fff',
+              // border: 'none',
               cursor: 'pointer',
               transition: 'background-color 0.3s',
+              
             }}
           >
-            Save File
-          </button>
+            💾
+          </span>
+        
+         
+        
         </div>
 
         {rows.map((row, index) => (

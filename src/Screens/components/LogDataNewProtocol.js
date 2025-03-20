@@ -738,6 +738,16 @@ function LogDataNewProtocol() {
       alert(error.message);
     }
   };
+  const remSpaces = (event) => {
+    event.preventDefault();
+    try {
+        const normalizedInput = inputText.replace(/\s+/g, '');
+
+      setResult(normalizedInput);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   const handleChangeText = (event) => {
     setText(event.target.value);  // Update the state with the new value
   };
@@ -964,6 +974,17 @@ function LogDataNewProtocol() {
           }}
         >
           Split Hex{' '}
+        </button>
+        <button
+          onClick={remSpaces}
+          style={{
+            marginLeft: '10px',
+            marginRight: '10px',
+            background: 'green',
+            color: 'white',
+          }}
+        >
+          Remove Spaces{' '}
         </button>
         <button
           onClick={reverseData}
