@@ -9,6 +9,7 @@ import {
   faCalendarAlt,
   faNetworkWired,
   faDatabase,
+  faSignal 
 } from '@fortawesome/free-solid-svg-icons';
 
 function LogData() {
@@ -845,6 +846,7 @@ function LogData() {
             />
           </Link>
         </button>
+        
         <button style={{ marginLeft: '2px' }}>
           <Link to="/CLIData">
             <FontAwesomeIcon
@@ -902,6 +904,16 @@ function LogData() {
               size="1.5x"
               style={iconStyle}
               title="Log Data in Detail"
+            />
+          </Link>
+        </button>
+        <button style={{ marginLeft: '2px' }}>
+          <Link to="/frequencyTable">
+            <FontAwesomeIcon
+              icon={faSignal}
+              size="1.5x"
+              style={iconStyle}
+              title="Frequency Table"
             />
           </Link>
         </button>

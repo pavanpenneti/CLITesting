@@ -57,13 +57,13 @@ function FetchData() {
        
       const [response1, response2,response3] = await Promise.all([
         axios.get(`${ipaddress}/getcmsslotinfo?ipaddress=${serialno}&slotno=1&subslotno=0`),
-        axios.get(`${ipaddress}/getamplifierprofiles?ipaddress=${serialno}&slotno=1`),
+        // axios.get(`${ipaddress}/getamplifierprofiles?ipaddress=${serialno}&slotno=1`),
         //axios.get(`${ipaddress}/getactivitylog?ipaddress=${serialno}&slotno=1`)
       ]);
       
       setData(response1.data);
-      setData1(response2.data);
-      setData3(response3.data);
+      // setData1(response2.data);
+      // setData3(response3.data);
       console.log(data3)
       setTimestamp(new Date());
     } catch (error) { 
@@ -198,15 +198,11 @@ const toggleResponseVisibility = () => {
     { startKey: "supportStatus", endKey: "bIsModuleID" },
     { startKey: "bIsModuleID", endKey: "alarm_summary" },
     { startKey: "byScrtchpadStatus", endKey: "bySerModStatus" },
-    { startKey: "byFSKRxFreqDS", endKey: "byIAPStatus" },
-    { startKey: "byTransMSStatus", endKey: "bypad" },
-    { startKey: "bypad", endKey: "byTransStatus" },
-    { startKey: "byTransStatus", endKey: "byTranscfgStatus" },
-    { startKey: "byTranscfgStatus", endKey: "byFSKRxFreqDS" },  
     { startKey: "bySerModStatus", endKey: "bySysStatus" },
     { startKey: "bySysStatus", endKey: "byAmpStatus" },
     { startKey: "byAmpStatus", endKey: "byAlmStatus" },
     { startKey: "byAlmStatus", endKey: "byAlmThresStatus" },
+
     { startKey: "byAlmThresStatus", endKey: "byTranspOnlineStatus" },
     { startKey: "byTranspOnlineStatus", endKey: "byNameType" },
     { startKey: "byNameType", endKey: "byDsAGCMode" },
@@ -217,11 +213,23 @@ const toggleResponseVisibility = () => {
     { startKey: "bySpecStatus", endKey: "byNodeIdAmplifIdStatus" },
     { startKey: "byNodeIdAmplifIdStatus", endKey: "byAddrsStatus" },
     { startKey: "byAddrsStatus", endKey: "byPwrLvlStatus" },
+
     { startKey: "byPwrLvlStatus", endKey: "byAlmProfStatus" },
     { startKey: "byAlmProfStatus", endKey: "bySysStat" },
     { startKey: "bySysStat", endKey: "bySetupRecStatus" },
     { startKey: "bySetupRecStatus", endKey: "siCardType" },
-    
+    { startKey: "byTransLocalTimeStatus", endKey: "byTransParmStatus" },
+    { startKey: "byTransParmStatus", endKey: "byTranschannelPlanStatus" },
+    { startKey: "byTranschannelPlanStatus", endKey: "byIAPStatus" },
+    { startKey: "byTransMSStatus", endKey: "bypad" },
+    { startKey: "bypad", endKey: "byTransStatus" },
+    { startKey: "byTransStatus", endKey: "byTranscfgStatus" },
+
+    { startKey: "byTranscfgStatus", endKey: "byTransLocalTimeStatus" },  
+    { startKey: "byTranscfgStatus", endKey: "byCurChannelPlanNum" },
+    { startKey: "byCurChannelPlanNum", endKey: "byTranschannelPlanNameStatus" },
+    { startKey: "byTranschannelPlanNameStatus", endKey: "byIAPStatus" },
+    	
     
   ];
  const keys1 =[{ startKey: "byIAPNum", endKey: "strIAPname" }]
@@ -244,7 +252,7 @@ const toggleResponseVisibility = () => {
  }
  
 const result1 = [];
-for (let index = 0; index < 29; index++) {
+for (let index = 0; index < 34; index++) {
   result1.push(results(data, keys[index].startKey, keys[index].endKey));
 }
 const result2 = [];
@@ -259,38 +267,46 @@ const tables= [
   {"title":"0x48", "data":result1[3]},
   {"title":"Extra Fields", "data":result1[4]},
   {"title":"0x1D", "data":result1[5]},
-  {"title":"0x12", "data":result1[6]},
-  {"title":"0x20", "data":result1[7]},
-  {"title":"0x21", "data":result1[8]},
-  {"title":"0x22", "data":result1[9]},
-  {"title":"0x23", "data":result1[10]},
-  {"title":"0x24", "data":result1[11]},
-  {"title":"0x25", "data":result1[12]},
-  {"title":"0x26", "data":result1[13]},
-  {"title":"0x27", "data":result1[14]},
-  {"title":"0x28", "data":result1[15]},
-  {"title":"0x29", "data":result1[16]},
-  {"title":"0x3B", "data":result1[17]},
-  {"title":"0x2A", "data":result1[18]},
-  {"title":"0x2B", "data":result1[19]},
-  {"title":"0x2C", "data":result1[20]},
-  {"title":"0x2D", "data":result1[21]},
-  {"title":"0x2E", "data":result1[22]},
-  {"title":"0x2F", "data":result1[23]},
-  {"title":"0x38", "data":result1[24]},
-  {"title":"0x39", "data":result1[25]},
-  {"title":"0x30", "data":result1[26]},
-  {"title":"0x3A", "data":result1[27]},
-  {"title":"0x3C", "data":result1[28]},
+  {"title":"0x24", "data":result1[6]},
+  {"title":"0x25", "data":result1[7]},
+  {"title":"0x26", "data":result1[8]},
+  {"title":"0x27", "data":result1[9]},
+  {"title":"0x28", "data":result1[10]},
+  {"title":"0x29", "data":result1[11]},
+  {"title":"0x3B", "data":result1[12]},
+  {"title":"0x2A", "data":result1[13]},
+  {"title":"0x2B", "data":result1[14]},
+  {"title":"0x2C", "data":result1[15]},
+  {"title":"0x2D", "data":result1[16]},
+  {"title":"0x2E", "data":result1[17]},
+  {"title":"0x2F", "data":result1[18]},
+  {"title":"0x38", "data":result1[19]},
+  {"title":"0x39", "data":result1[20]},
+  {"title":"0x30", "data":result1[21]},
+  {"title":"0x3A", "data":result1[22]},
+  {"title":"0x3C", "data":result1[23]},
+
+  {"title":"0x11", "data":result1[24]},
+  {"title":"0x12", "data":result1[25]},
+  {"title":"0x13", "data":result1[26]},
+  {"title":"0x20", "data":result1[27]},
+  {"title":"0x21", "data":result1[28]},
+  {"title":"0x22", "data":result1[29]},
+  {"title":"0x23", "data":result1[30]},
+  {"title":"0x23_MB", "data":result1[31]},
+  {"title":"0x12_MB", "data":result1[32]},
+  {"title":"0x13_MB", "data":result1[33]},
 
   
 ]
 
-const tables1 =[  {"title":" ---- ", "data":result2[0]},
-{"title":" --->", "data":result2[1]},
-{"title":"Profile Data(0x17, 0x19, 0x1C)", "data":result2[2]},
-{"title":" <---", "data":result2[3]},
-{"title":" ----", "data":result2[4]},]
+const tables1 =[ ]
+// for tables1 currently removed from tables1
+// {"title":" ---- ", "data":result2[0]},
+// {"title":" --->", "data":result2[1]},
+// {"title":"Profile Data(0x17, 0x19, 0x1C)", "data":result2[2]},
+// {"title":" <---", "data":result2[3]},
+// {"title":" ----", "data":result2[4]},
 
 //OA Module Related 
 function getNonObjectProperties(obj) {

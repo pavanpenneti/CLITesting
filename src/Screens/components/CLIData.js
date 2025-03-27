@@ -217,6 +217,7 @@ function CLIData() {
             })}
           </tbody>
         </table>
+    
       </div>
     </div>
   );

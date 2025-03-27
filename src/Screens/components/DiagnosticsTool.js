@@ -17,6 +17,7 @@ const DiagnosticsTool = () => {
   ]);
 
   const options = [
+    'mergeData',
     'date',
     'Version',
     'Hardware Rev.',
@@ -112,7 +113,9 @@ const DiagnosticsTool = () => {
 
     setRows(updatedRows);
   };
-
+  const mergeData = (data) => {
+    return data.replace(/\s+/g, '');
+  };
   const reverseData = (data) => {
     return data.split(' ').reverse().join(' ');
   };
@@ -687,6 +690,10 @@ const DiagnosticsTool = () => {
         .join(' ');
       let processedData, methodName;
       switch (row.selectedOption) {
+        case 'mergeData':
+            methodName = 'mergeData';
+            processedData = mergeData(slicedData); // Example for Merge: remove spaces
+            break;
         case 'date':
             methodName = 'date';
             processedData = date(slicedData); // Example for Merge: remove spaces

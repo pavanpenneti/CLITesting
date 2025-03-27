@@ -682,7 +682,7 @@ function SetDataFormat() {
           style={{
             position: 'fixed',
             padding: '0',
-            width: '80%',
+            width: '99%',
             color: 'black',
             maxHeight: '450px',
             height: '430px',
@@ -691,7 +691,7 @@ function SetDataFormat() {
             backgroundColor: '#f1f1f1',
           }}
         >
-          <p style={{ color: 'red' }}>
+          
             <button
               onClick={clearLastAppendedData}
               style={{
@@ -727,18 +727,19 @@ function SetDataFormat() {
 
             <br />
             <br />
+            <p style={{ color: 'red', fontFamily: 'monospace'  }}>
             <b>
               03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
               25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46
               47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63
             </b>
           </p>
-          <br />
+  
           {appendedData.map((result, index) => (
-            <span key={index}>{result} </span>
+            <p style={{ color: 'black', fontFamily: 'monospace'}}>{result} </p>
           ))}
         </div>
-        <div
+        {/* <div
           style={{
             position: 'absolute',
             padding: '2px',
@@ -773,7 +774,7 @@ function SetDataFormat() {
 
           <h3 style={{ lineHeight: '0.5em' }}>Float (4 bytes):</h3>
           <p style={{ lineHeight: '0.5em' }}> Range: 1.2E-38 to 3.4E+38 </p>
-        </div>
+        </div> */}
       </div>
       <div
         style={{
@@ -815,13 +816,15 @@ function SetDataFormat() {
           Save Data to Notepad
         </button>
         {'\n'}
-        <b style={{ color: 'red' }}>
+        <p style={{ color: 'red', fontFamily: 'monospace'  }}>
+  
           03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
           26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
           49 50 51 52 53 54 55 56 57 58 59 60 61 62 63
-        </b>
-        <br />
+        </p>
+        <p style={{ color: 'black', fontFamily: 'monospace'  }}>
         {addappendData.join('\n').replace(/,/g, ' ')}
+        </p>
       </div>
     </div>
   );

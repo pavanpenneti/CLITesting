@@ -12,6 +12,7 @@ import DailyReport from './Screens/components/DailyReport';
 import DiagnosticsTool from './Screens/components/DiagnosticsTool';
 import LogDataNewProtocol from './Screens/components/LogDataNewProtocol';
 import SetDataFormatNewProtocol from './Screens/components/SetDataFormatNewProtocol';
+import FrequencyTable from './Screens/components/FrequencyTable';
 
 
 function App() {
@@ -29,9 +30,10 @@ function App() {
 				<Route exact path='/SetDataFormatNewProtocol' Component={SetDataFormatNewProtocol}></Route>
 				
 				<Route exact path='/dailyReport' Component={DailyReport}></Route>
-			
+				FrequencyTable
 				<Route exact path='/diagnosticstool' Component={DiagnosticsTool}></Route>
 				<Route exact path='/logDataDetail' Component={LogDetail}></Route>
+				<Route exact path='/frequencyTable' Component={FrequencyTable}></Route>
 				
 		</Routes>
 	</Router>
