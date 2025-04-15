@@ -730,6 +730,25 @@ function LogData() {
       alert(error.message);
     }
   };
+  const msglgt = (event) => {
+    event.preventDefault();
+    console.log(inputText);
+    try {
+      // Preprocess the inputText
+      const normalizedInput = inputText.trim().replace(/ /g, ''); // Remove all spaces
+      const hexArray = normalizedInput.match(/.{1,2}/g); // Split into 2-character chunks
+
+      if (!hexArray) {
+        throw new Error('Invalid input. Please provide valid hex values.');
+      }
+      const lengthOfHexArray = hexArray.length;
+      const msglength = lengthOfHexArray + 128
+      const msglength1 =  msglength.toString(16).padStart(2, '0').toUpperCase();
+      setResult(msglength1);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   const splitHex = (event) => {
     event.preventDefault();
     try {
@@ -986,7 +1005,7 @@ function LogData() {
         <button
           onClick={splitHex}
           style={{
-            marginLeft: '300px',
+            marginLeft: '100px',
             marginRight: '10px',
             background: 'green',
             color: 'white',
@@ -1126,6 +1145,17 @@ function LogData() {
           }}
         >
           Checksum{' '}
+        </button>
+        <button
+          onClick={msglgt}
+          style={{
+            marginLeft: '10px',
+            marginRight: '10px',
+            background: 'green',
+            color: 'white',
+          }}
+        >
+          Msg Length{' '}
         </button>
         
         <br />
