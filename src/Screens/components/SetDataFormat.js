@@ -736,7 +736,8 @@ function SetDataFormat() {
           </p>
   
           {appendedData.map((result, index) => (
-            <p style={{ color: 'black', fontFamily: 'monospace'}}>{result} </p>
+            //<p style={{ color: 'black', fontFamily: 'monospace'}}>{result} </p>
+             <span key={index}>{result} </span>
           ))}
         </div>
         {/* <div
@@ -815,7 +816,7 @@ function SetDataFormat() {
         >
           Save Data to Notepad
         </button>
-        {'\n'}
+      
         <p style={{ color: 'red', fontFamily: 'monospace'  }}>
   
           03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
@@ -823,7 +824,7 @@ function SetDataFormat() {
           49 50 51 52 53 54 55 56 57 58 59 60 61 62 63
         </p>
         <p style={{ color: 'black', fontFamily: 'monospace'  }}>
-        {addappendData.join('\n').replace(/,/g, ' ')}
+        <pre>{addappendData.join('\n').replace(/,/g, ' ')}</pre>
         </p>
       </div>
     </div>

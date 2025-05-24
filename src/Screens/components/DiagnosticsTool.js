@@ -476,22 +476,22 @@ const DiagnosticsTool = () => {
   };
 
   const signedconvertToInt2ByteReverse = (data) => {
-    const hexWithoutSpaces = data.replace(/\s/g, '');
-    const byteArray = [];
-    for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
-      byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
-    }
-    byteArray.reverse();
+  const hexWithoutSpaces = data.replace(/\s/g, '');
+  if (hexWithoutSpaces.length !== 4) {
+    throw new Error("Expected exactly 2 bytes (4 hex digits)");
+  }
 
-    let signedInt = 0;
-    for (let i = 0; i < byteArray.length; i++) {
-      signedInt |= byteArray[i] << (i * 8);
-    }
-    if (signedInt & 0x8000) {
-      signedInt = signedInt - 0x10000;
-    }
-    return signedInt;
-  };
+  // Split into bytes and reverse
+  const byte1 = parseInt(hexWithoutSpaces.substr(0, 2), 16);
+  const byte2 = parseInt(hexWithoutSpaces.substr(2, 2), 16);
+
+  // Reverse the order for little-endian interpretation
+  const reversed = (byte2 << 8) | byte1;
+
+  // Convert to signed 16-bit
+  return (reversed & 0x8000) ? reversed - 0x10000 : reversed;
+};
+
 
   const signedconvertToInt4Byte = (data) => {
     const hexWithoutSpaces = data.replace(/\s/g, '');
@@ -562,13 +562,34 @@ const DiagnosticsTool = () => {
     }
   };
 
-  const convertToInt2Reverse = (data) => {
+//   const convertToInt2Reverse = (data) => {
+//     console.log("Hi I am here");
+
+//     // Remove spaces from input data
+//     const hexWithoutSpaces = data.replace(/\s/g, '');
+    
+//     // Convert hex string to a byte array
+//     const byteArray = [];
+//     for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
+//         byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
+//     }
+
+//     // Reverse the byte array
+//     byteArray.reverse();
+
+//     // Combine the bytes to form an unsigned integer
+//     let uSignInt = (byteArray[0] << 8) | byteArray[1]; 
+
+//     console.log(uSignInt);
+//     return uSignInt;
+// };
+const convertToInt2Reverse = (data) => {
     console.log("Hi I am here");
 
     // Remove spaces from input data
     const hexWithoutSpaces = data.replace(/\s/g, '');
-    
-    // Convert hex string to a byte array
+
+    // Convert hex string to byte array
     const byteArray = [];
     for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
         byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
@@ -577,12 +598,23 @@ const DiagnosticsTool = () => {
     // Reverse the byte array
     byteArray.reverse();
 
-    // Combine the bytes to form an unsigned integer
-    let uSignInt = (byteArray[0] << 8) | byteArray[1]; 
+    // Combine reversed bytes into an unsigned integer
+    const reversedValue = (byteArray[0] << 8) | byteArray[1];
 
-    console.log(uSignInt);
-    return uSignInt;
+    // Get original value from input hex string
+    const originalValue = parseInt(hexWithoutSpaces, 16);
+
+    let finalValue = reversedValue;
+
+    // If result exceeds 2^16, subtract original
+    if (reversedValue > 0xFFFF) {
+        finalValue = reversedValue - originalValue;
+    }
+
+    console.log(finalValue);
+    return finalValue;
 };
+
   const downloadJSON = (data, filename = 'data.json') => {
     const jsonString = JSON.stringify(data, null, 2); // Convert data to JSON string with formatting
     const blob = new Blob([jsonString], { type: 'application/json' }); // Create a Blob object
