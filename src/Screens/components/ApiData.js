@@ -52,7 +52,7 @@ function FetchData() {
   } 
 
   const refresh = async () => {
-    if (serialNo.startsWith("MB") || serialNo.startsWith("BLE") || serialNo.startsWith("XPR")) {
+    if (serialNo.startsWith("MB") || serialNo.startsWith("BLE") || serialNo.startsWith("XPR") || serialNo.startsWith("FM")) {
     try {
        
       const [response1, response2,response3] = await Promise.all([
@@ -602,7 +602,7 @@ const rendersplTableRows = () => {
         </div>}
 
 {/* MB Display Data */}
-        {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE") || serialNo.startsWith("XPR")) &&
+        {isVisible && (serialNo.startsWith("MB") || serialNo.startsWith("BLE") || serialNo.startsWith("XPR") || serialNo.startsWith("FM")) &&
         <div style={{position: 'relative', top:'55px'}}>
           
         {(Object.keys(data).length>0 )  && <div className={styles.tables} style={{alignItems:'baseline', border:"1px solid black" }}>   
