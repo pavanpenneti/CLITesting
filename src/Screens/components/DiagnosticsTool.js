@@ -728,7 +728,7 @@ const convertToInt2Reverse = (data) => {
             break;
         case 'date':
             methodName = 'date';
-            processedData = date(slicedData); // Example for Merge: remove spaces
+            processedData = date(slicedData); // Example for  Merge: remove spaces
             break;
         case 'Version':
             methodName = 'ConvertDotData';

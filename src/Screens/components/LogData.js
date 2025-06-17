@@ -9,7 +9,8 @@ import {
   faCalendarAlt,
   faNetworkWired,
   faDatabase,
-  faSignal 
+  faSignal,
+  faFileAlt 
 } from '@fortawesome/free-solid-svg-icons';
 
 function LogData() {
@@ -856,9 +857,19 @@ function LogData() {
           </Link>
         </button>
         <button style={{ marginLeft: '2px' }}>
-          <Link to="/logDataNewProtocol">
+          <Link to="/SetAPIData">
             <FontAwesomeIcon
               icon={faDatabase}
+              size="1.5x"
+              style={iconStyle}
+              title="Set & GET API Data"
+            />
+          </Link>
+        </button>
+        <button style={{ marginLeft: '2px' }}>
+          <Link to="/logDataNewProtocol">
+            <FontAwesomeIcon
+              icon={faFileAlt}
               size="1.5x"
               style={iconStyle}
               title="Log Data New Protocol"
@@ -886,16 +897,7 @@ function LogData() {
             />
           </Link>
         </button>
-        <button style={{ marginLeft: '2px' }}>
-          <Link to="/SetDataFormatNewProtocol">
-            <FontAwesomeIcon
-              icon={faClipboard}
-              size="1.5x"
-              style={iconStyle}
-              title="Set Data Format New Protocol"
-            />
-          </Link>
-        </button>
+        
         <button style={{ marginLeft: '2px' }}>
           <Link to="/dailyReport">
             <FontAwesomeIcon

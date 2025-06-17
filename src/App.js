@@ -14,6 +14,7 @@ import LogDataNewProtocol from './Screens/components/LogDataNewProtocol';
 import SetDataFormatNewProtocol from './Screens/components/SetDataFormatNewProtocol';
 import FrequencyTable from './Screens/components/FrequencyTable';
 import RouteTitle from './Screens/components/RouteTitle';
+import setAPIData from './Screens/components/SetApiData';
 
 
 function App() {
@@ -36,7 +37,7 @@ function App() {
 				<Route exact path='/diagnosticstool' Component={DiagnosticsTool}></Route>
 				<Route exact path='/logDataDetail' Component={LogDetail}></Route>
 				<Route exact path='/frequencyTable' Component={FrequencyTable}></Route>
-				
+				<Route exact path='/setAPIData' Component={setAPIData}></Route>
 		</Routes>
 	</Router>
 
