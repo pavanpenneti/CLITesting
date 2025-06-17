@@ -398,7 +398,7 @@ const handleGenerate = () => {
       <Button
         variant="outlined"
         onClick={() => setShowBox(prev => !prev)}
-        sx={{ mb: 2}}
+        sx={{ mb: 1}}
       >
         {showBox ? "Hide Input Form" : "Show Input Form"}
       </Button>
@@ -406,11 +406,9 @@ const handleGenerate = () => {
       <Collapse in={showBox}>
         <Box className="flex justify-center mt-4">
           <Paper elevation={4} sx={{ p: 4, maxWidth: 1450, width: "100%" }}>
-            <Typography variant="h6" gutterBottom>
-              Paste XML Data
-            </Typography>
+            
             <TextField
-              label="Add XML Raw Variables "
+              label="Add XML Data "
               placeholder="Paste XML Data to extract the variables"
               multiline
               rows={10}
@@ -418,7 +416,7 @@ const handleGenerate = () => {
               variant="outlined"
               value={rawInput}
               onChange={e => setRawInput(e.target.value)}
-              sx={{ mb: 2 }}
+              sx={{ mb: 1 }}
             />
             <Button
           variant="contained"
@@ -459,7 +457,7 @@ const handleGenerate = () => {
             flexWrap: 'wrap',
             gap: 1,
             alignItems: 'center',
-            mt:2
+            mt:1
           }}
         >
           <input
