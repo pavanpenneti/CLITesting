@@ -34,7 +34,9 @@ function DailyReport() {
   ];
 
   const addReport = (report) => setReports([...reports, report]);
-
+const hexToDecimal = (hex) => parseInt(hex.replace("0x", "").trim(), 16);
+const [rawPayloadText, setRawPayloadText] = useState("");
+const [payloadTableRows, setPayloadTableRows] = useState([]);
   const removeLastReport = () => {
     setReports(reports.slice(0, -1));
   };
@@ -263,7 +265,31 @@ const handleDownload = () => {
 
     reader.readAsText(file);
   };
+const parseData = () => {
+  const lines = rawPayloadText.trim().split("\n");
+  const parsed = lines.map((line) => {
+    const [byteRangeRaw, size, content] = line.split("\t");
+    let startHex, endHex;
 
+    if (byteRangeRaw.includes("–")) {
+      const [start, end] = byteRangeRaw.split("–").map((s) => s.trim());
+      startHex = start;
+      endHex = end;
+    } else {
+      startHex = byteRangeRaw.trim();
+      endHex = startHex;
+    }
+
+    return {
+      startByte: parseInt(startHex.replace("0x", ""), 16),
+      endByte: parseInt(endHex.replace("0x", ""), 16),
+      size: size?.trim() || "",
+      content: content?.trim() || "",
+    };
+  });
+
+  setPayloadTableRows(parsed);
+};
 
   return (
     <div>
@@ -467,6 +493,63 @@ const handleDownload = () => {
           </div>
         ))}
       </div>
+      <div style={{ padding: "1rem", fontFamily: "sans-serif" }}>
+  <h3>Payload Byte Table Generator</h3>
+
+  <textarea
+    rows={12}
+    placeholder="Paste tab-separated payload data here..."
+    value={rawPayloadText}
+    onChange={(e) => setRawPayloadText(e.target.value)}
+    style={{ width: "99%", fontFamily: "monospace", padding: "8px" }}
+    onKeyDown={(e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const textarea = e.target;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newValue =
+          rawPayloadText.substring(0, start) + "\t" + rawPayloadText.substring(end);
+        setRawPayloadText(newValue);
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = start + 1;
+        }, 0);
+      }
+    }}
+  />
+
+  <button
+    onClick={parseData}
+    style={{ marginTop: "10px", padding: "6px 12px" }}
+  >
+    Submit
+  </button>
+
+  {payloadTableRows.length > 0 && (
+    <table border="1" cellPadding="6" style={{ marginTop: "1rem", width: "100%" }}>
+      <thead>
+        <tr>
+          <th>varByte</th>
+          <th>startByte</th>
+          <th>endByte</th>
+          <th>selectedOption</th>
+        </tr>
+      </thead>
+      <tbody>
+        {payloadTableRows.slice(2).map((row, idx) => (
+          <tr key={idx}>
+            <td>{row.content}</td>
+            <td>{row.startByte}</td>
+            <td>{row.endByte}</td>
+            <td>data</td>
+            
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+</div>
+
     </div>
   );
 }
