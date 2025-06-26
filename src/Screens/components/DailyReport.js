@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import './DailyReport.css';
-import axios from 'axios';
 
 function DailyReport() {
   const [reports, setReports] = useState([]);
@@ -14,6 +13,9 @@ function DailyReport() {
   const [selectedField, setSelectedField] = useState('');
   const [textareaValue, setTextareaValue] = useState('');
   const [data, setData] = useState({});
+  const [inputText, setInputText] = useState("");
+   const [tableData, setTableData] = useState([]);
+  const [columns, setColumns] = useState([]);
   const fields = [
     "JIRA TT's Added",
     "JIRA TT's Modified",
@@ -167,7 +169,101 @@ function DailyReport() {
       addReport(report);
       setTextareaValue(''); // Clear the textarea after adding the report
     }
+  }; 
+ 
+
+
+  const getDefaultFields = (selectedOption) => {
+    const now = new Date().toLocaleString();
+
+    // Determine methodName based on selectedOption
+    let methodName = "convertToDecimal";
+    let processedData = "NaN";
+
+    if (selectedOption === "Version") {
+      methodName = "ConvertDotData";
+      processedData = "NaN.NaN";
+    }
+
+    return {
+      extraTextBoxes: [],
+      methodName,
+      processedData,
+      slicedData: "",
+      localTime: now,
+      logData: "00 00 00 00 ",
+    };
   };
+
+  const parseInputToJson = () => {
+    const lines = inputText.trim().split("\n");
+    const dataRows = lines.slice(1); // skip header
+
+    return dataRows.map((line) => {
+      const [varByte, startByte, endByte, selectedOption] = line.split(/\t+/);
+      const base = {
+        varByte: varByte?.trim(),
+        startByte: Number(startByte),
+        endByte: Number(endByte),
+        selectedOption: selectedOption?.trim(),
+      };
+
+      return {
+        ...base,
+        ...getDefaultFields(base.selectedOption),
+      };
+    });
+  };
+
+const handleDownload = () => {
+  try {
+    const outputArray = parseInputToJson();
+    const jsonString = JSON.stringify(outputArray, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    // Prompt user for filename
+    const defaultName = "GET_0x.json";
+    const fileName = window.prompt("Enter a filename for your JSON file:", defaultName) || defaultName;
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName.endsWith(".json") ? fileName : `${fileName}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    alert("Error parsing input. Please ensure tab-separated format is correct.");
+  }
+};
+
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+
+        if (Array.isArray(json)) {
+          setTableData(json);
+
+          // Extract only the first 4 unique keys from the first object
+          const keys = Object.keys(json[0] || {}).slice(0, 4);
+          setColumns(keys);
+        } else {
+          alert("Uploaded file is not a valid JSON array.");
+        }
+      } catch (err) {
+        alert("Error parsing JSON file.");
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
 
   return (
     <div>
@@ -322,7 +418,49 @@ function DailyReport() {
           </button>
         </div>
       </div>
+      
       <div style={{ marginTop: 110 }}>
+        
+             <div style={{ maxWidth: 600, margin: "2px", padding: "1rem" }}>
+      <h3>Variables to JSON Generator</h3>
+      <textarea
+        rows={12}
+        style={{ width: "100%", fontFamily: "monospace", padding: "8px" }}
+        placeholder={`varByte\tstartByte\tendByte\tselectedOption\nSystem Status\t4\t4\tHex-ASCII\n...`}
+        value={inputText}
+        onChange={(e) => setInputText(e.target.value)}
+      />
+      <button onClick={handleDownload} style={{ marginTop: "1rem" }}>
+        Download JSON
+      </button>
+      
+    </div>
+     <div style={{ padding: "1rem" }}>
+      <h3>Upload JSON and Display as Table</h3>
+      <input type="file" accept=".json" onChange={handleFileUpload} />
+
+      {tableData.length > 0 && (
+        <table border="1" cellPadding="6" style={{ marginTop: "1rem", width: "100%" }}>
+          <thead>
+            <tr>
+              {columns.map((col) => (
+                <th key={col}>{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, idx) => (
+              <tr key={idx}>
+                {columns.map((col) => (
+                  <td key={col}>{row[col] ?? ""}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+    
         {reports.map((report, index) => (
           <div key={index} className="report-item">
             {report}

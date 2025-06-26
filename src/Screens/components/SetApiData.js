@@ -10,8 +10,14 @@ import {
   faEyeSlash,
 } from '@fortawesome/free-solid-svg-icons';
 
-import { Paper, TextField, Button, Typography, Box, Collapse } from "@mui/material";
-
+import {
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Collapse,
+} from '@mui/material';
 
 function SetAPIData() {
   const [data, setData] = useState({});
@@ -24,12 +30,12 @@ function SetAPIData() {
   const [showResponse, setShowResponse] = useState(false);
   const [timestamp, setTimestamp] = useState(new Date());
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
-  const [rawInput, setRawInput] = useState("");
- const [showBox, setShowBox] = useState(false);
+  const [rawInput, setRawInput] = useState('');
+  const [showBox, setShowBox] = useState(false);
   const [rows, setRows] = useState([
     { input1: '', input2: '', input3: '', result: '', success: null },
   ]);
-const [output, setOutput] = useState("");
+  const [output, setOutput] = useState('');
   const ipaddress = `http://${ipAddress}`;
   const serialno = serialNo;
   const iconStyle = { color: 'green' };
@@ -108,14 +114,13 @@ const [output, setOutput] = useState("");
     updated.splice(index, 1);
     setRows(updated);
   };
-  const clearResponses =()=>{
+  const clearResponses = () => {
     const clearedRows = rows.map(() => ({
-    
-    result: '',
-    success: null,
-  }));
-  setRows(clearedRows);
-  }
+      result: '',
+      success: null,
+    }));
+    setRows(clearedRows);
+  };
 
   // Update row field
   const handleRowChange = (index, field, value) => {
@@ -181,31 +186,31 @@ const [output, setOutput] = useState("");
   };
 
   // Export rows data as JSON file
- const exportData = () => {
-  // Prompt for file name
-  let filename = window.prompt('Enter file name:', 'XML_Cardtype_0x');
-  if (!filename) return; // Exit if user cancels
+  const exportData = () => {
+    // Prompt for file name
+    let filename = window.prompt('Enter file name:', 'XML_Cardtype_0x');
+    if (!filename) return; // Exit if user cancels
 
-  try {
-    const blob = new Blob([JSON.stringify(rows, null, 2)], {
-      type: 'application/json',
-    });
+    try {
+      const blob = new Blob([JSON.stringify(rows, null, 2)], {
+        type: 'application/json',
+      });
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${filename}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${filename}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-    alert(`"${filename}.json" has been downloaded.`);
-  } catch (err) {
-    console.error("Export failed:", err);
-    alert("Export failed. See console for details.");
-  }
-};
+      alert(`"${filename}.json" has been downloaded.`);
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Export failed. See console for details.');
+    }
+  };
 
   // Import rows data from JSON file
   const importData = (event) => {
@@ -226,20 +231,23 @@ const [output, setOutput] = useState("");
     };
     reader.readAsText(file);
   };
-    const handleExtract = () => {
+  const handleExtract = () => {
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(`<root>${rawInput}</root>`, "text/xml");
-    const msgbytes = xmlDoc.getElementsByTagName("msgbyte");
+    const xmlDoc = parser.parseFromString(
+      `<root>${rawInput}</root>`,
+      'text/xml'
+    );
+    const msgbytes = xmlDoc.getElementsByTagName('msgbyte');
 
-    let result = "";
+    let result = '';
 
     for (let i = 0; i < msgbytes.length; i++) {
-      const bytemsg = msgbytes[i].getAttribute("bytemsg");
+      const bytemsg = msgbytes[i].getAttribute('bytemsg');
       if (bytemsg) result += `${bytemsg}\n`;
 
-      const attributes = msgbytes[i].getElementsByTagName("attribute-binding");
+      const attributes = msgbytes[i].getElementsByTagName('attribute-binding');
       for (let j = 0; j < attributes.length; j++) {
-        const name = attributes[j].getAttribute("name");
+        const name = attributes[j].getAttribute('name');
         if (name) result += `${name}\n`;
       }
 
@@ -249,28 +257,26 @@ const [output, setOutput] = useState("");
     setOutput(result.trim());
   };
 
-const handleGenerate = () => {
-    const lines = output
-      .split("\n")
-      .map(line => line.trim())
-      //.filter(line => line ); // ignore 0x lines
+  const handleGenerate = () => {
+    const lines = output.split('\n').map((line) => line.trim());
+    //.filter(line => line ); // ignore 0x lines
 
-    const resultArray = lines.map(variable => ({
+    const resultArray = lines.map((variable) => ({
       input1: variable,
-      input2: "",
+      input2: '',
       input3: variable,
-      result: "",
-      success: null
+      result: '',
+      success: null,
     }));
 
     const blob = new Blob([JSON.stringify(resultArray, null, 2)], {
-      type: "application/json"
+      type: 'application/json',
     });
 
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
-    link.download = "XML.json";
+    link.download = 'XML.json';
     link.click();
   };
 
@@ -321,8 +327,7 @@ const handleGenerate = () => {
           onClick={getUSBDevices}
           startIcon={<FontAwesomeIcon icon={faLaptop} />}
           sx={{ whiteSpace: 'nowrap' }}
-        >
-               </Button>
+        ></Button>
 
         <select
           value={serialNo}
@@ -344,36 +349,42 @@ const handleGenerate = () => {
             </option>
           ))}
         </select>
-   <input
-            type="text"
-            value={cardType}
-            onChange={(e) => setCardType(e.target.value)}
-            placeholder="CardType"
-            style={{
-              width: 80,
-              padding: 8,
-              borderRadius: 4,
-              border: '1px solid #ccc',
-            }}
-          />
+        <input
+          type="text"
+          value={cardType}
+          onChange={(e) => setCardType(e.target.value)}
+          placeholder="CardType"
+          style={{
+            width: 80,
+            padding: 8,
+            borderRadius: 4,
+            border: '1px solid #ccc',
+          }}
+        />
         <Button
           variant="outlined"
           color="success"
           onClick={refresh}
           startIcon={<FontAwesomeIcon icon={faSyncAlt} style={iconStyle} />}
-          sx={{ width: 42, height: 32, minWidth: 0, padding: 0,border:1 }}
+          sx={{ width: 42, height: 32, minWidth: 0, padding: 0, border: 1 }}
           title="GET/Refresh data"
+        ></Button>
+
+        <Button
+          variant="outlined"
+          onClick={exportData}
+          sx={{ width: 32, height: 32, minWidth: 0, padding: 0, border: 1 }}
         >
-         
-        </Button>
-        
-        <Button variant="outlined" onClick={exportData} sx={{ width: 32, height: 32, minWidth: 0, padding: 0,border:1 }} >
           ⬇️
         </Button>
 
         <label htmlFor="import-file" style={{ cursor: 'pointer' }}>
-          <Button variant="outlined" component="span" sx={{ width: 32, height: 32, minWidth: 0, padding: 0,border:1 }}>
-             ⬆️
+          <Button
+            variant="outlined"
+            component="span"
+            sx={{ width: 32, height: 32, minWidth: 0, padding: 0, border: 1 }}
+          >
+            ⬆️
           </Button>
           <input
             id="import-file"
@@ -391,64 +402,63 @@ const handleGenerate = () => {
 
       {/* Spacer so content isn't hidden behind fixed top bar */}
       <Box sx={{ height: '65px' }} />
-  
+
       {/* Input Form */}
       <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
         <Box className="p-4">
-      <Button
-        variant="outlined"
-        onClick={() => setShowBox(prev => !prev)}
-        sx={{ mb: 1}}
-      >
-        {showBox ? "Hide Input Form" : "Show Input Form"}
-      </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setShowBox((prev) => !prev)}
+            sx={{ mb: 1 }}
+          >
+            {showBox ? 'Hide Input Form' : 'Show Input Form'}
+          </Button>
 
-      <Collapse in={showBox}>
-        <Box className="flex justify-center mt-4">
-          <Paper elevation={4} sx={{ p: 4, maxWidth: 1450, width: "100%" }}>
-            
-            <TextField
-              label="Add XML Data "
-              placeholder="Paste XML Data to extract the variables"
-              multiline
-              rows={10}
-              fullWidth
-              variant="outlined"
-              value={rawInput}
-              onChange={e => setRawInput(e.target.value)}
-              sx={{ mb: 1 }}
-            />
-            <Button
-          variant="contained"
-          color="primary"
-          sx={{marginBottom: 1}}
-          onClick={handleExtract}
-          fullWidth
-        >
-          Extract
-        </Button>
-            {output && (
-          <TextField
-            label="Extracted Output"
-            multiline
-            rows={15}
-            fullWidth
-            sx={{ mt: 3 }}
-            value={output}
-          />
-        )}
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleGenerate}
-              fullWidth
-            >
-              Generate & Download JSON
-            </Button>
-          </Paper>
+          <Collapse in={showBox}>
+            <Box className="flex justify-center mt-4">
+              <Paper elevation={4} sx={{ p: 4, maxWidth: 1450, width: '100%' }}>
+                <TextField
+                  label="Add XML Data "
+                  placeholder="Paste XML Data to extract the variables"
+                  multiline
+                  rows={10}
+                  fullWidth
+                  variant="outlined"
+                  value={rawInput}
+                  onChange={(e) => setRawInput(e.target.value)}
+                  sx={{ mb: 1 }}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{ marginBottom: 1 }}
+                  onClick={handleExtract}
+                  fullWidth
+                >
+                  Extract
+                </Button>
+                {output && (
+                  <TextField
+                    label="Extracted Output"
+                    multiline
+                    rows={15}
+                    fullWidth
+                    sx={{ mt: 3 }}
+                    value={output}
+                  />
+                )}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleGenerate}
+                  fullWidth
+                >
+                  Generate & Download JSON
+                </Button>
+              </Paper>
+            </Box>
+          </Collapse>
         </Box>
-      </Collapse>
-    </Box>
         <Box
           component="form"
           onSubmit={(e) => e.preventDefault()}
@@ -457,7 +467,7 @@ const handleGenerate = () => {
             flexWrap: 'wrap',
             gap: 1,
             alignItems: 'center',
-            mt:1
+            mt: 1,
           }}
         >
           <input
@@ -471,20 +481,15 @@ const handleGenerate = () => {
               padding: 8,
               borderRadius: 4,
               border: '1px solid #ccc',
-            
             }}
           />
-
-         
 
           <Button
             variant="contained"
             color="success"
             onClick={postData}
             startIcon={<FontAwesomeIcon icon={faPaperPlane} />}
-          >
-          
-          </Button>
+          ></Button>
 
           <Button
             variant="outlined"
@@ -519,11 +524,13 @@ const handleGenerate = () => {
 
       {/* Rows Table */}
       <Paper elevation={3} sx={{ p: 2 }}>
+       
         {rows.map((row, index) => (
           <Box
             key={index}
             sx={{
-              mb: 0.5,
+              mb: 0.2,
+              mt: 0.5,
               display: 'flex',
               flexWrap: 'wrap',
               gap: 0.5,
@@ -537,10 +544,10 @@ const handleGenerate = () => {
               onChange={(e) => handleRowChange(index, 'input1', e.target.value)}
               style={{
                 width: '250px',
-                padding: 8,
+                padding: 4,
                 borderRadius: 4,
                 border: '1px solid #ccc',
-                 color: "rgb(0, 116, 232)"
+                color: 'rgb(0, 116, 232)',
               }}
             />
             <input
@@ -550,10 +557,10 @@ const handleGenerate = () => {
               onChange={(e) => handleRowChange(index, 'input2', e.target.value)}
               style={{
                 width: '250px',
-                padding: 8,
+                padding: 4,
                 borderRadius: 4,
                 border: '1px solid #ccc',
-                 color: 'rgb(221, 0, 169)'
+                color: 'rgb(221, 0, 169)',
               }}
             />
             <input
@@ -563,10 +570,10 @@ const handleGenerate = () => {
               onChange={(e) => handleRowChange(index, 'input3', e.target.value)}
               style={{
                 width: '250px',
-                padding: 8,
+                padding: 4,
                 borderRadius: 4,
                 border: '1px solid #ccc',
-                  color: "brown" 
+                color: 'brown',
               }}
             />
 
@@ -574,49 +581,77 @@ const handleGenerate = () => {
               variant="text"
               color="success"
               onClick={() => handleSet(index)}
-              sx={{ width: 32, height: 32, minWidth: 0, padding: 0, border:1 }}
+              sx={{ width: 30, height: 24, minWidth: 0, padding: 0, border: 1 }}
             >
-     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-  <polyline points="17 8 12 3 7 8"/>
-  <line x1="12" y1="3" x2="12" y2="15"/>
-</svg>
-
-
-
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                stroke="green"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
             </Button>
 
             <Button
               variant="text"
               color="success"
               onClick={() => handleGet(index)}
-            sx={{ width: 32, height: 32, minWidth: 0, padding: 0,border:1 }}
+              sx={{ width: 30, height: 24, minWidth: 0, padding: 0, border: 1 }}
             >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="blue" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-  <polyline points="7 10 12 15 17 10"/>
-  <line x1="12" y1="15" x2="12" y2="3"/>
-</svg>
-
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                stroke="blue"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
             </Button>
-{showDeleteButtons && (
-            <Button
-              variant="text"
-              onClick={() => removeRow(index)}
-             sx={{ width: 32, height: 32, minWidth: 0, padding: 0,border:1 }}
-              color="error"
-              title="Remove Row"
-            >
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <polyline points="3 6 5 6 21 6"/>
-  <path d="M19 6l-2 14H7L5 6"/>
-  <path d="M10 11v6"/>
-  <path d="M14 11v6"/>
-  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-</svg>
-
-
-            </Button>)}
+            {showDeleteButtons && (
+              <Button
+                variant="text"
+                onClick={() => removeRow(index)}
+                sx={{
+                  width: 30,
+                  height: 24,
+                  minWidth: 0,
+                  padding: 0,
+                  border: 1,
+                }}
+                color="error"
+                title="Remove Row"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="red"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-2 14H7L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </Button>
+            )}
 
             {/* {row.success === true && (
               <Box sx={{ color: 'green', ml: 1, fontWeight: 'bold' }}>✅</Box>
@@ -625,42 +660,74 @@ const handleGenerate = () => {
               <Box sx={{ color: 'red', ml: 1, fontWeight: 'bold' }}>❌</Box>
             )} */}
 
-            
-            
-           <input
+            <input
               type="text"
               placeholder="SET and GET Response"
               value={row.result}
-            
               style={{
                 width: '500px',
-                marginLeft:'2px',
-                padding: 8,
+                marginLeft: '2px',
+                padding: 4,
                 borderRadius: 4,
                 border: '1px solid #ccc',
-                color: 'rgb(221, 0, 169)'
+                color: 'rgb(221, 0, 169)',
               }}
             />
           </Box>
         ))}
-
-        <Button variant="outlined" onClick={addRow}   color="error" sx={{width: 100, height: 32, minWidth: 0, padding: 0, border:1}} >
-         <strong>Add Row</strong>
+         <Button
+          variant="outlined"
+          onClick={addRow}
+          color="secondary"
+          sx={{ width: 24, height: 24, minWidth: 0, padding: 0, border: 1 }}
+        >
+          <strong>+</strong>
         </Button>
-        <Button color="error" sx={{width: 100, height: 32, marginLeft: 1, minWidth: 0, padding: 0, border:1}}  onClick={() => setShowDeleteButtons(!showDeleteButtons)}>
-  <strong>Delete</strong> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <polyline points="3 6 5 6 21 6"/>
-  <path d="M19 6l-2 14H7L5 6"/>
-  <path d="M10 11v6"/>
-  <path d="M14 11v6"/>
-  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-</svg>
-</Button>
-<Button variant="outlined" onClick={clearResponses}   color="error" sx={{width: 150, marginLeft: 1, height: 32, minWidth: 0, padding: 0, border:1}} >
-         <strong>Clear Responses</strong>
+        <Button
+          color="error"
+          sx={{
+            width: 24,
+            height: 24,
+            marginLeft: 1,
+            minWidth: 0,
+            padding: 0,
+            border: 1,
+          }}
+          onClick={() => setShowDeleteButtons(!showDeleteButtons)}
+        >
+          <strong></strong>{' '}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="red"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-2 14H7L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
         </Button>
-       
-
+        <Button
+          variant="outlined"
+          onClick={clearResponses}
+          color="primary"
+          sx={{
+            width: 24,
+            marginLeft: 1,
+            height: 24,
+            minWidth: 0,
+            padding: 0,
+            border: 1,
+          }}
+        >
+          <strong>X</strong>
+        </Button>
       </Paper>
     </Box>
   );
