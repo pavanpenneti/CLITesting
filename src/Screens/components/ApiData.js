@@ -23,7 +23,7 @@ function FetchData() {
   const [isVisible] = useState(true);
   const [ipAddress, setIpAddress] = useState('');
   const [serialNo, setSerialNo] = useState("");
-  const ipaddress =`${ipAddress}`;
+  const ipaddress =`http://${ipAddress}`;
   const serialno= serialNo;
   const [timestamp, setTimestamp] = useState(new Date());
   const [inputData, setInputData] = useState('');
@@ -44,7 +44,8 @@ function FetchData() {
     
   const getUSBDevices= async () =>{
     try{
-    const response =await axios.get(`/.netlify/functions/proxyusb?ip=${ipaddress}`)
+    const response =await axios.get(`${ipaddress}/getusbdevices`)
+   
     setData4(response.data);}
     catch(e){
       alert(`If IP Address entered is correct \nPlease check whether Server or Internet/VPN is connected and try again`);
@@ -392,14 +393,16 @@ const rendersplTableRows = () => {
       {/* <button type="submit" onClick={getUSBDevices}>Get Devices</button>
       
       {"  "}   */}
-      <select value={serialNo} onChange={handleSelectChange} style={{marginLeft:"2px"}}>
-      <option selected >select device</option>
-        {data4.map((item,index) => (         
-          <option key={index} value={item.data.usbaddress}>
-            {item.data.usbaddress}
-          </option>
-        ))}
-      </select>
+   <select value={serialNo} onChange={handleSelectChange} style={{ marginLeft: "2px" }}>
+  <option value="">Select device</option>
+  {Array.isArray(data4) &&
+    data4.map((item, index) => (
+      <option key={index} value={item.data?.usbaddress}>
+        {item.data?.usbaddress}
+      </option>
+    ))}
+</select>
+
       {"  "}  
      
        {/* <button type="submit" onClick={refresh} >Get Info</button>{"  "}  

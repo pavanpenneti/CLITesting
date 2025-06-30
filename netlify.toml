@@ -1,6 +1,12 @@
 [build]
-  publish = "dist"
   command = "npm run build"
+  publish = "build"  # not dist!
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [dev]
   functions = "netlify/functions"
+
