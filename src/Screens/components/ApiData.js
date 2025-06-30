@@ -23,7 +23,7 @@ function FetchData() {
   const [isVisible] = useState(true);
   const [ipAddress, setIpAddress] = useState('');
   const [serialNo, setSerialNo] = useState("");
-  const ipaddress =`http://${ipAddress}`;
+  const ipaddress =`${ipAddress}`;
   const serialno= serialNo;
   const [timestamp, setTimestamp] = useState(new Date());
   const [inputData, setInputData] = useState('');
@@ -44,7 +44,7 @@ function FetchData() {
     
   const getUSBDevices= async () =>{
     try{
-    const response =await axios.get(`${ipaddress}/getusbdevices`)
+    const response =await axios.get(`/.netlify/functions/proxyusb?ip=${ipaddress}`)
     setData4(response.data);}
     catch(e){
       alert(`If IP Address entered is correct \nPlease check whether Server or Internet/VPN is connected and try again`);
