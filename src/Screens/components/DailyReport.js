@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
 import './DailyReport.css';
-
+import {
+  Box,
+  Grid,
+  Stack,
+  TextField,
+  Select,
+  MenuItem,
+  Button,
+  InputLabel,
+  FormControl,
+  TextareaAutosize,
+  Typography,
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableContainer
+} from '@mui/material';
 function DailyReport() {
   const [reports, setReports] = useState([]);
   const [version, setVersion] = useState('9.02.04');
@@ -292,265 +311,410 @@ const parseData = () => {
 };
 
   return (
-    <div>
-      <div
-        style={{
-          position: 'fixed',
-          padding: '2px 0',
-          width: '100%',
-          color: 'black',
-          top: 0,
-          marginLeft: '0px',
-          backgroundColor: '#f1f1f1',
-        }}
-      >
-        <input
-          style={{ marginRight: 3, marginLeft: 170 }}
-          type="text"
-          placeholder="Installer Version"
-          value={version}
-          onChange={(e) => setVersion(e.target.value)}
-        />
-        <select
-          style={{ height: 23, width: 120, marginRight: 3 }}
-          value={system}
-          onChange={(e) => setSystem(e.target.value)}
-        >
-          <option value="CMS">CMS</option>
-          <option value="EMS">EMS</option>
-          <option value="OTS">OTS</option>
-          <option value="Opti-Trace Server">Opti-Trace Server</option>
-        </select>
-        <button
-          style={{ marginRight: 3, background: 'green', color: 'white' }}
-          type="button"
-          className="set-button"
-          onClick={installer}
-        >
-          Installer SET
-        </button>
-        <input
-          style={{ marginRight: 3 }}
-          type="text"
-          placeholder="OA4544D Installer Version"
-          value={installerVersion}
-          onChange={(e) => setInstallerVersion(e.target.value)}
-        />
-        <input
-          style={{ marginRight: 3 }}
-          type="text"
-          placeholder="Enter Firmware Version"
-          value={fwVersion}
-          onChange={(e) => setFwVersion(e.target.value)}
-        />
+//     <div>
+//       <div
+//         style={{
+//           position: 'fixed',
+//           padding: '2px 0',
+//           width: '100%',
+//           color: 'black',
+//           top: 0,
+//           marginLeft: '0px',
+//           backgroundColor: '#f1f1f1',
+//         }}
+//       >
+//         <input
+//           style={{ marginRight: 3, marginLeft: 170 }}
+//           type="text"
+//           placeholder="Installer Version"
+//           value={version}
+//           onChange={(e) => setVersion(e.target.value)}
+//         />
+//         <select
+//           style={{ height: 23, width: 120, marginRight: 3 }}
+//           value={system}
+//           onChange={(e) => setSystem(e.target.value)}
+//         >
+//           <option value="CMS">CMS</option>
+//           <option value="EMS">EMS</option>
+//           <option value="OTS">OTS</option>
+//           <option value="Opti-Trace Server">Opti-Trace Server</option>
+//         </select>
+//         <button
+//           style={{ marginRight: 3, background: 'green', color: 'white' }}
+//           type="button"
+//           className="set-button"
+//           onClick={installer}
+//         >
+//           Installer SET
+//         </button>
+//         <input
+//           style={{ marginRight: 3 }}
+//           type="text"
+//           placeholder="OA4544D Installer Version"
+//           value={installerVersion}
+//           onChange={(e) => setInstallerVersion(e.target.value)}
+//         />
+//         <input
+//           style={{ marginRight: 3 }}
+//           type="text"
+//           placeholder="Enter Firmware Version"
+//           value={fwVersion}
+//           onChange={(e) => setFwVersion(e.target.value)}
+//         />
 
-        <button
-          style={{ marginRight: 3, background: 'green', color: 'white' }}
-          type="button"
-          className="set-button"
-          onClick={oaTestingReport}
-        >
-          OA SET
-        </button>
-        <input
-          type="text"
-          placeholder="MB180 Installer Version"
-          value={mbInstallerVersion}
-          onChange={(e) => setMbInstallerVersion(e.target.value)}
-        />
-        <input
-          style={{ marginRight: 3 }}
-          type="text"
-          placeholder="Enter Firmware Version"
-          value={mbFwVersion}
-          onChange={(e) => setMbFwVersion(e.target.value)}
-        />
+//         <button
+//           style={{ marginRight: 3, background: 'green', color: 'white' }}
+//           type="button"
+//           className="set-button"
+//           onClick={oaTestingReport}
+//         >
+//           OA SET
+//         </button>
+//         <input
+//           type="text"
+//           placeholder="MB180 Installer Version"
+//           value={mbInstallerVersion}
+//           onChange={(e) => setMbInstallerVersion(e.target.value)}
+//         />
+//         <input
+//           style={{ marginRight: 3 }}
+//           type="text"
+//           placeholder="Enter Firmware Version"
+//           value={mbFwVersion}
+//           onChange={(e) => setMbFwVersion(e.target.value)}
+//         />
 
-        <button
-          type="button"
-          style={{ marginRight: 3, background: 'green', color: 'white' }}
-          className="set-button"
-          onClick={mbBleTestingReport}
-        >
-          MB180 SET
-        </button>
-        <button
-          type="button"
-          style={{ marginRight: 3, background: 'red', color: 'white' }}
-          onClick={removeLastReport}
-        >
-          Remove Last Appended Data
-        </button>
-        <button
-          type="button"
-          style={{ marginRight: 3, background: 'red', color: 'white' }}
-          onClick={clearReports}
-        >
-          Clear
-        </button>
-        <div>
-          <select
-            style={{ height: 23, marginLeft: 150, marginRight: 3, width: 150 }}
-            id="field-select"
-            value={selectedField}
-            onChange={(e) => setSelectedField(e.target.value)}
-          >
-            <option value="">Select a field</option>
-            {fields.map((field, index) => (
-              <option key={index} value={field}>
-                {field}
-              </option>
-            ))}
-          </select>
+//         <button
+//           type="button"
+//           style={{ marginRight: 3, background: 'green', color: 'white' }}
+//           className="set-button"
+//           onClick={mbBleTestingReport}
+//         >
+//           MB180 SET
+//         </button>
+//         <button
+//           type="button"
+//           style={{ marginRight: 3, background: 'red', color: 'white' }}
+//           onClick={removeLastReport}
+//         >
+//           Remove Last Appended Data
+//         </button>
+//         <button
+//           type="button"
+//           style={{ marginRight: 3, background: 'red', color: 'white' }}
+//           onClick={clearReports}
+//         >
+//           Clear
+//         </button>
+//         <div>
+//           <select
+//             style={{ height: 23, marginLeft: 150, marginRight: 3, width: 150 }}
+//             id="field-select"
+//             value={selectedField}
+//             onChange={(e) => setSelectedField(e.target.value)}
+//           >
+//             <option value="">Select a field</option>
+//             {fields.map((field, index) => (
+//               <option key={index} value={field}>
+//                 {field}
+//               </option>
+//             ))}
+//           </select>
 
-          <textarea
-            style={{ marginRight: 3, width: 500 }}
-            id="field-textarea"
+//           <textarea
+//             style={{ marginRight: 3, width: 500 }}
+//             id="field-textarea"
+//             placeholder="Select Field Type and Enter ........"
+//             value={textareaValue}
+//             onChange={(e) => setTextareaValue(e.target.value)}
+//             rows="4"
+//             cols="50"
+//             className="textarea"
+//           />
+
+//           <button
+//             style={{ marginRight: 3, background: 'green', color: 'white' }}
+//             type="button"
+//             className="set-button"
+//             onClick={addFieldReport}
+//           >
+//             Field SET
+//           </button>
+
+//           {/* Custom Report */}
+
+//           <textarea
+//             style={{ marginRight: 3, width: 500 }}
+//             placeholder="Customize ....."
+//             value={customReport}
+//             onChange={(e) => setCustomReport(e.target.value)}
+//             rows="4"
+//             cols="50"
+//           />
+
+//           <button
+//             type="button"
+//             style={{ marginRight: 3, background: 'green', color: 'white' }}
+//             className="set-button"
+//             onClick={addCustomReport}
+//           >
+//             Customize SET
+//           </button>
+//         </div>
+//       </div>
+      
+//       <div style={{ marginTop: 110 }}>
+        
+//              <div style={{ maxWidth: 600, margin: "2px", padding: "1rem" }}>
+//       <h3>Variables to JSON Generator</h3>
+//       <textarea
+//         rows={12}
+//         style={{ width: "100%", fontFamily: "monospace", padding: "8px" }}
+//         placeholder={`varByte\tstartByte\tendByte\tselectedOption\nSystem Status\t4\t4\tHex-ASCII\n...`}
+//         value={inputText}
+//         onChange={(e) => setInputText(e.target.value)}
+//       />
+//       <button onClick={handleDownload} style={{ marginTop: "1rem" }}>
+//         Download JSON
+//       </button>
+      
+//     </div>
+//      <div style={{ padding: "1rem" }}>
+//       <h3>Upload JSON and Display as Table</h3>
+//       <input type="file" accept=".json" onChange={handleFileUpload} />
+
+//       {tableData.length > 0 && (
+//         <table border="1" cellPadding="6" style={{ marginTop: "1rem", width: "100%" }}>
+//           <thead>
+//             <tr>
+//               {columns.map((col) => (
+//                 <th key={col}>{col}</th>
+//               ))}
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {tableData.map((row, idx) => (
+//               <tr key={idx}>
+//                 {columns.map((col) => (
+//                   <td key={col}>{row[col] ?? ""}</td>
+//                 ))}
+//               </tr>
+//             ))}
+//           </tbody>
+//         </table>
+//       )}
+//     </div>
+    
+//         {reports.map((report, index) => (
+//           <div key={index} className="report-item">
+//             {report}
+//           </div>
+//         ))}
+//       </div>
+//       <div style={{ padding: "1rem", fontFamily: "sans-serif" }}>
+//   <h3>Payload Byte Table Generator</h3>
+
+//   <textarea
+//     rows={12}
+//     placeholder="Paste tab-separated payload data here..."
+//     value={rawPayloadText}
+//     onChange={(e) => setRawPayloadText(e.target.value)}
+//     style={{ width: "99%", fontFamily: "monospace", padding: "8px" }}
+//     onKeyDown={(e) => {
+//       if (e.key === "Tab") {
+//         e.preventDefault();
+//         const textarea = e.target;
+//         const start = textarea.selectionStart;
+//         const end = textarea.selectionEnd;
+//         const newValue =
+//           rawPayloadText.substring(0, start) + "\t" + rawPayloadText.substring(end);
+//         setRawPayloadText(newValue);
+//         setTimeout(() => {
+//           textarea.selectionStart = textarea.selectionEnd = start + 1;
+//         }, 0);
+//       }
+//     }}
+//   />
+
+//   <button
+//     onClick={parseData}
+//     style={{ marginTop: "10px", padding: "6px 12px" }}
+//   >
+//     Submit
+//   </button>
+
+//   {payloadTableRows.length > 0 && (
+//     <table border="1" cellPadding="6" style={{ marginTop: "1rem", width: "100%" }}>
+//       <thead>
+//         <tr>
+//           <th>varByte</th>
+//           <th>startByte</th>
+//           <th>endByte</th>
+//           <th>selectedOption</th>
+//         </tr>
+//       </thead>
+//       <tbody>
+//         {payloadTableRows.map((row, idx) => (
+//           <tr key={idx}>
+//             <td>{row.content}</td>
+//             <td>{row.startByte}</td>
+//             <td>{row.endByte}</td>
+//             <td>data</td>
+            
+//           </tr>
+//         ))}
+//       </tbody>
+//     </table>
+//   )}
+// </div>
+
+//     </div>
+ <Box sx={{ p: 2 }}>
+      {/* Header Section */}
+      <Paper elevation={3} sx={{ p: 2, position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10 }}>
+        <Grid container spacing={1} alignItems="center">
+          <Grid item><TextField size="small" label="Installer Version" value={version} onChange={(e) => setVersion(e.target.value)} /></Grid>
+          <Grid item>
+            <FormControl size="small">
+              <InputLabel>System</InputLabel>
+              <Select value={system} label="System" onChange={(e) => setSystem(e.target.value)}>
+                <MenuItem value="CMS">CMS</MenuItem>
+                <MenuItem value="EMS">EMS</MenuItem>
+                <MenuItem value="OTS">OTS</MenuItem>
+                <MenuItem value="Opti-Trace Server">Opti-Trace Server</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item><Button variant="contained" color="success" onClick={installer}>Installer SET</Button></Grid>
+          <Grid item><TextField size="small" label="OA4544D Installer Version" value={installerVersion} onChange={(e) => setInstallerVersion(e.target.value)} /></Grid>
+          <Grid item><TextField size="small" label="Firmware Version" value={fwVersion} onChange={(e) => setFwVersion(e.target.value)} /></Grid>
+          <Grid item><Button variant="contained" color="success" onClick={oaTestingReport}>OA SET</Button></Grid>
+          <Grid item><TextField size="small" label="MB180 Installer Version" value={mbInstallerVersion} onChange={(e) => setMbInstallerVersion(e.target.value)} /></Grid>
+          <Grid item><TextField size="small" label="Firmware Version" value={mbFwVersion} onChange={(e) => setMbFwVersion(e.target.value)} /></Grid>
+          <Grid item><Button variant="contained" color="success" onClick={mbBleTestingReport}>MB180 SET</Button></Grid>
+          <Grid item><Button variant="contained" color="error" onClick={removeLastReport}>Remove Last</Button></Grid>
+          <Grid item><Button variant="contained" color="error" onClick={clearReports}>Clear</Button></Grid>
+        </Grid>
+
+        {/* Text Areas */}
+        <Stack direction="row" spacing={2} mt={2} flexWrap="wrap">
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Select Field</InputLabel>
+            <Select value={selectedField} label="Select Field" onChange={(e) => setSelectedField(e.target.value)}>
+              <MenuItem value="">Select a field</MenuItem>
+              {fields.map((field, index) => (
+                <MenuItem key={index} value={field}>{field}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextareaAutosize
+            minRows={4}
             placeholder="Select Field Type and Enter ........"
             value={textareaValue}
             onChange={(e) => setTextareaValue(e.target.value)}
-            rows="4"
-            cols="50"
-            className="textarea"
+            style={{ width: 500 }}
           />
+          <Button variant="contained" color="success" onClick={addFieldReport}>Field SET</Button>
 
-          <button
-            style={{ marginRight: 3, background: 'green', color: 'white' }}
-            type="button"
-            className="set-button"
-            onClick={addFieldReport}
-          >
-            Field SET
-          </button>
-
-          {/* Custom Report */}
-
-          <textarea
-            style={{ marginRight: 3, width: 500 }}
+          <TextareaAutosize
+            minRows={4}
             placeholder="Customize ....."
             value={customReport}
             onChange={(e) => setCustomReport(e.target.value)}
-            rows="4"
-            cols="50"
+            style={{ width: 500 }}
           />
+          <Button variant="contained" color="success" onClick={addCustomReport}>Customize SET</Button>
+        </Stack>
+      </Paper>
 
-          <button
-            type="button"
-            style={{ marginRight: 3, background: 'green', color: 'white' }}
-            className="set-button"
-            onClick={addCustomReport}
-          >
-            Customize SET
-          </button>
-        </div>
-      </div>
-      
-      <div style={{ marginTop: 110 }}>
-        
-             <div style={{ maxWidth: 600, margin: "2px", padding: "1rem" }}>
-      <h3>Variables to JSON Generator</h3>
-      <textarea
-        rows={12}
-        style={{ width: "100%", fontFamily: "monospace", padding: "8px" }}
-        placeholder={`varByte\tstartByte\tendByte\tselectedOption\nSystem Status\t4\t4\tHex-ASCII\n...`}
-        value={inputText}
-        onChange={(e) => setInputText(e.target.value)}
-      />
-      <button onClick={handleDownload} style={{ marginTop: "1rem" }}>
-        Download JSON
-      </button>
-      
-    </div>
-     <div style={{ padding: "1rem" }}>
-      <h3>Upload JSON and Display as Table</h3>
-      <input type="file" accept=".json" onChange={handleFileUpload} />
+      {/* Content Section */}
+      <Box sx={{ mt: 30 }}>
+        <Typography variant="h6" gutterBottom>Variables to JSON Generator</Typography>
+        <TextareaAutosize
+          minRows={10}
+          placeholder="varByte\tstartByte\tendByte\tselectedOption\nSystem Status\t4\t4\tHex-ASCII"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          style={{ width: '100%', fontFamily: 'monospace', padding: 8 }}
+        />
+        <Button variant="contained" sx={{ mt: 1 }} onClick={handleDownload}>Download JSON</Button>
 
-      {tableData.length > 0 && (
-        <table border="1" cellPadding="6" style={{ marginTop: "1rem", width: "100%" }}>
-          <thead>
-            <tr>
-              {columns.map((col) => (
-                <th key={col}>{col}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((row, idx) => (
-              <tr key={idx}>
-                {columns.map((col) => (
-                  <td key={col}>{row[col] ?? ""}</td>
+        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>Upload JSON and Display as Table</Typography>
+        <input type="file" accept=".json" onChange={handleFileUpload} />
+        {tableData.length > 0 && (
+          <TableContainer sx={{ mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  {columns.map((col) => <TableCell key={col}>{col}</TableCell>)}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {tableData.map((row, idx) => (
+                  <TableRow key={idx}>
+                    {columns.map((col) => <TableCell key={col}>{row[col] ?? ''}</TableCell>)}
+                  </TableRow>
                 ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-    
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>Reports</Typography>
         {reports.map((report, index) => (
-          <div key={index} className="report-item">
-            {report}
-          </div>
+          <Paper key={index} sx={{ p: 1, mb: 1, bgcolor: '#f1f1f1' }}>{report}</Paper>
         ))}
-      </div>
-      <div style={{ padding: "1rem", fontFamily: "sans-serif" }}>
-  <h3>Payload Byte Table Generator</h3>
 
-  <textarea
-    rows={12}
-    placeholder="Paste tab-separated payload data here..."
-    value={rawPayloadText}
-    onChange={(e) => setRawPayloadText(e.target.value)}
-    style={{ width: "99%", fontFamily: "monospace", padding: "8px" }}
-    onKeyDown={(e) => {
-      if (e.key === "Tab") {
-        e.preventDefault();
-        const textarea = e.target;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const newValue =
-          rawPayloadText.substring(0, start) + "\t" + rawPayloadText.substring(end);
-        setRawPayloadText(newValue);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + 1;
-        }, 0);
-      }
-    }}
-  />
+        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>Payload Byte Table Generator</Typography>
+        <TextareaAutosize
+          minRows={10}
+          value={rawPayloadText}
+          onChange={(e) => setRawPayloadText(e.target.value)}
+          placeholder="Paste tab-separated payload data here..."
+          onKeyDown={(e) => {
+            if (e.key === 'Tab') {
+              e.preventDefault();
+              const start = e.target.selectionStart;
+              const end = e.target.selectionEnd;
+              setRawPayloadText(rawPayloadText.substring(0, start) + '\t' + rawPayloadText.substring(end));
+              setTimeout(() => {
+                e.target.selectionStart = e.target.selectionEnd = start + 1;
+              }, 0);
+            }
+          }}
+          style={{ width: '100%', fontFamily: 'monospace', padding: 8 }}
+        />
+        <Button variant="contained" sx={{ mt: 1 }} onClick={parseData}>Submit</Button>
 
-  <button
-    onClick={parseData}
-    style={{ marginTop: "10px", padding: "6px 12px" }}
-  >
-    Submit
-  </button>
+        {payloadTableRows.length > 0 && (
+          <TableContainer sx={{ mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>varByte</TableCell>
+                  <TableCell>startByte</TableCell>
+                  <TableCell>endByte</TableCell>
+                  <TableCell>selectedOption</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {payloadTableRows.map((row, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{row.content}</TableCell>
+                    <TableCell>{row.startByte}</TableCell>
+                    <TableCell>{row.endByte}</TableCell>
+                    <TableCell>data</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
+    </Box>
 
-  {payloadTableRows.length > 0 && (
-    <table border="1" cellPadding="6" style={{ marginTop: "1rem", width: "100%" }}>
-      <thead>
-        <tr>
-          <th>varByte</th>
-          <th>startByte</th>
-          <th>endByte</th>
-          <th>selectedOption</th>
-        </tr>
-      </thead>
-      <tbody>
-        {payloadTableRows.slice(2).map((row, idx) => (
-          <tr key={idx}>
-            <td>{row.content}</td>
-            <td>{row.startByte}</td>
-            <td>{row.endByte}</td>
-            <td>data</td>
-            
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )}
-</div>
-
-    </div>
   );
 }
 

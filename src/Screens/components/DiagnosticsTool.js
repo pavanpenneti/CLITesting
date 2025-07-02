@@ -489,7 +489,7 @@ const DiagnosticsTool = () => {
   const reversed = (byte2 << 8) | byte1;
 
   // Convert to signed 16-bit
-  return (reversed & 0x8000) ? reversed - 0x10000 : reversed;
+  return (reversed & 0x8000) ? (reversed - 0x10000)/10 : reversed/10;
 };
 
 
