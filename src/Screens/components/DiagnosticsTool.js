@@ -1294,7 +1294,12 @@ const convertToInt2Reverse = (data) => {
                       '...' +
                       row.endByte +
                       ' bytes' +
-                      ')'}
+                      ')'+ ' [0x' +
+  row.startByte.toString(16).toUpperCase() +
+  '-0x' +
+  row.endByte.toString(16).toUpperCase() +
+  
+']'}
                   </span>
                   <span style={{ ...styles.item, color: 'rgb(221, 0, 169)' }}>
                     {row.processedData}

@@ -608,7 +608,24 @@ function LogData() {
     }
     setResult(signedInt);
   };
+const removeRxLines = () => {
+    const newText = text
+      .split("\n")
+      .map(line => line.trim()) // trim each line
+      .filter(line => line !== "" && !line.startsWith("Rx:")) // remove blank and Rx
+      .join("\n");
+    setText(newText);
+  };
+   const processText = () => {
+    const newText = text
+      .split("\n")
+      .map(line => line.trim()) // remove leading/trailing spaces
+      .filter(line => line !== "" && !line.startsWith("Rx:")) // remove blank + Rx lines
+      .map(line => line.replace(/^Tx:\s*/i, "").replace(/\s+/g, "")) // remove Tx: and merge hex
+      .join("\n"); // keep each Tx output on new line
 
+    setText(newText);
+  };
   const reverseData = (event) => {
     event.preventDefault();
     const reversedHex = inputText.split('').reverse().join('');
@@ -750,6 +767,19 @@ function LogData() {
       alert(error.message);
     }
   };
+   const extract9thByte = () => {
+    const newText = text
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line.startsWith("Tx:"))
+      .map(line => {
+        const parts = line.replace(/^Tx:\s*/i, "").split(/\s+/);
+        return parts[7] || ""; // 9th byte (index 8)
+      })
+      .join("\n");
+    setText(newText);
+  };
+
   const splitHex = (event) => {
     event.preventDefault();
     try {
@@ -953,7 +983,7 @@ function LogData() {
         {/* Adding logic for conversion  */}
         <div>
         <textarea
-        rows="1"
+        rows="5"
           cols="10"
         id="inputText"
         value={text}  // Set the value of textarea to the state value
@@ -962,7 +992,7 @@ function LogData() {
         style={{
           width: '95%',
           padding: '0px',
-          marginBottom: '1px',
+          marginBottom: '5px',
           fontFamily: 'monospace',
           marginLeft: '10px'
         }}
@@ -1004,10 +1034,12 @@ function LogData() {
         />
 
         <br />
+        <button style={{ marginLeft: '10px', marginRight: '10px',   background: 'green',
+            color: 'white',}} onClick={extract9thByte}>Msg Type</button>
         <button
           onClick={splitHex}
           style={{
-            marginLeft: '100px',
+            marginLeft: '10px',
             marginRight: '10px',
             background: 'green',
             color: 'white',
@@ -1015,6 +1047,7 @@ function LogData() {
         >
           Split Hex{' '}
         </button>
+        
         <button
           onClick={remSpaces}
           style={{
@@ -1159,7 +1192,18 @@ function LogData() {
         >
           Msg Length{' '}
         </button>
-        
+        <button style={{
+            marginLeft: '10px',
+            marginRight: '10px',
+            background: 'green',
+            color: 'white',
+          }} onClick={removeRxLines}>Remove Rx Lines</button>
+        <button style={{
+            marginLeft: '10px',
+            marginRight: '10px',
+            background: 'green',
+            color: 'white',
+          }} onClick={processText}>Remove Rx & Merge Tx</button>
         <br />
         <button
           onClick={convertToHex}
@@ -1340,6 +1384,7 @@ function LogData() {
         >
           ~Hex_8b-Int{' '}
         </button>
+        
         <br />
       </div>
 
@@ -1347,7 +1392,7 @@ function LogData() {
         style={{
           position: 'fixed',
           marginRight: '8px',
-          top: 120,
+          top: 180,
           width: '100%',
           color: 'white',
           backgroundColor: '#f1f1f1',
@@ -1363,13 +1408,17 @@ function LogData() {
           </b>
          
         </p1>
+       
         
       </div>
-      <pre style={{ textAlign: 'left', padding: '22px 7px' }}>
+       <br/>
+  
+      <pre style={{ textAlign: 'left', padding: '22px 7px', marginTop:'55px' }}>
         {[...Array(7)].map((_, index) => (
           <br key={index} />
         ))}
-        {data.split('\n').map((line, index) => (
+        
+        { data.split('\n').map((line, index) => (
           <div key={index}>
             {line.startsWith('Tx') && <br />}
             {start > 0 && end > 0
@@ -1385,7 +1434,8 @@ function LogData() {
             wordWrap: "break-word", 
           padding: '0px 7px',
           textAlign: 'left',
-            fontFamily: 'monospace'
+            fontFamily: 'monospace',
+     
           }}
         >
         
