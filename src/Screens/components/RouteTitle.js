@@ -8,37 +8,37 @@ let title = "@Pavan | ";
 switch (path) {
 case "/":
 case "/logData":
-title = "Log Data Validator";
+title = "@Pavan | Log Data Validator";
 break;
 case "/logDataNewProtocol":
-title = "Log Data Validator (New Protocol)";
+title = "@Pavan | Log Data Validator (New Protocol)";
 break;
 case "/apiData":
-title = "API Data";
+title = "@Pavan | API Data";
 break;
 case "/CLIData":
-title = "CLI Data";
+title = "@Pavan | CLI Data";
 break;
 case "/SetDataFormat":
-title = "Set Data Format";
+title = "@Pavan | Set Data Format";
 break;
 case "/SetDataFormatNewProtocol":
-title = "Set Data Format (New Protocol)";
+title = "@Pavan | Set Data Format (New Protocol)";
 break;
 case "/dailyReport":
-title = "Daily Report";
+title = "@Pavan | Daily Report";
 break;
 case "/frequencyTable":
-title = "Frequency Table";
+title = "@Pavan | Frequency Table";
 break;
 case "/diagnosticstool":
-title = "Diagnostics Tool";
+title = "@Pavan | Diagnostics Tool";
 break;
 case "/logDataDetail":
-title = "Log Data Details";
+title = "@Pavan | Log Data Details";
 break;
 case "/SetAPIData":
-title = "SET & GET API Data";
+title = "@Pavan | SET & GET API Data";
 break;
 default:
 title = "@Pavan QA Tool";
