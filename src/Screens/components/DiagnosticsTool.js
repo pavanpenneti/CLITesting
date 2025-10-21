@@ -693,7 +693,7 @@ const convertToInt2Reverse = (data) => {
     ? `${row.methodName}(listData, x + ${row.startByte}, ${row.extraTextBoxes.map(box => box).join(", ")})`
     : (row.startByte === row.endByte 
         ? `${row.methodName}(listData.slice(x + ${row.startByte}, x + ${parseInt(row.endByte) + 1}))` 
-        : `${row.methodName}(listData, x + ${row.startByte}, x + ${parseInt(row.endByte)}))`
+        : `${row.methodName}(listData, x + ${row.startByte}, x + ${parseInt(row.endByte)})`
       ),
         rawData: `listData.slice(x + ${row.startByte}, x + ${parseInt(row.endByte) + 1}).join(' ')`,
         databyte: row.startByte === row.endByte ? `${row.startByte} byte` : `${row.startByte} to ${row.endByte} bytes`
@@ -767,11 +767,11 @@ const convertToInt2Reverse = (data) => {
             processedData = reverseData(slicedData);
             break;
         case 'Reverse & Merge':
-            methodName = 'reverseMergeData';
+            methodName = 'ConvertLongDataHextoReverse';
             processedData = reverseMergeData(slicedData); // Reverse and remove spaces
             break;
         case 'Decimal':
-            methodName = 'convertToDecimal';
+            methodName = 'hexToDecimal';
             processedData = convertToDecimal(slicedData); // Convert hex to decimal
             break;
         case '~Decimal':
@@ -827,7 +827,7 @@ const convertToInt2Reverse = (data) => {
             processedData = signedconvertToInt2Byte(slicedData); // Convert hex to decimal
             break;
         case '~Hex_2b_Int':
-            methodName = 'signedconvertToInt2ByteReverse';
+            methodName = 'convert2ByteFloat';
             processedData = signedconvertToInt2ByteReverse(slicedData); // Convert hex to decimal
             break;
         case 'Hex_2b_uInt':
@@ -835,7 +835,7 @@ const convertToInt2Reverse = (data) => {
             processedData = convertToInt2(slicedData);
             break;
         case '~Hex_2b_uInt':
-            methodName = 'convertToInt2Reverse';
+            methodName = 'convert2ByteSigned';
             processedData = convertToInt2Reverse(slicedData); // Reverse and remove spaces
             break;
         case 'Hex_4b_uInt':
@@ -843,7 +843,7 @@ const convertToInt2Reverse = (data) => {
             processedData = convertToInt4Byte(slicedData); // Example for Merge: remove spaces
             break;
         case '~Hex_4b_uInt':
-            methodName = 'convertToInt4ByteReverse';
+            methodName = 'convertHexToFloat';
             processedData = convertToInt4ByteReverse(slicedData); // Convert hex to decimal
             break;
         case 'Hex_4b_Int':

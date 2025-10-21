@@ -626,6 +626,46 @@ const removeRxLines = () => {
 
     setText(newText);
   };
+   const processTextTx = () => {
+    const newText = text
+      .split("\n")
+      .map(line => line.trim()) // remove leading/trailing spaces
+      .filter(line => line !== "" && !line.startsWith("Tx:")) // remove blank + Rx lines
+      .map(line => line.replace(/^Rx:\s*/i, "").replace(/\s+/g, "")) // remove Tx: and merge hex
+      .join("\n"); // keep each Tx output on new line
+
+    setText(newText);
+  };
+const splitHex1 = (line) => {
+  // Split the line into chunks of 4 hex characters (2 bytes)
+  const chunks = line.match(/.{1,2}/g) || [];
+  return chunks.join(' ');
+};
+
+const splitprocessText = () => {
+  const newText = text
+    .split("\n")
+    .map(line =>'    '+ splitHex1(line.trim()))
+    .join("\n");
+    
+  setText(newText);
+};
+const splitprocessTextRx = () => {
+  const newText = text
+    .split("\n")
+    .map(line =>'Rx: '+ splitHex1(line.trim()))
+    .join("\n");
+    
+  setText(newText);
+};
+const splitprocessTextTx = () => {
+  const newText = text
+    .split("\n")
+    .map(line =>'Tx: '+ splitHex1(line.trim()))
+    .join("\n");
+    
+  setText(newText);
+};
   const reverseData = (event) => {
     event.preventDefault();
     const reversedHex = inputText.split('').reverse().join('');
@@ -843,7 +883,7 @@ const removeRxLines = () => {
         </datalist>
         <input
           type="text"
-          style={{ marginRight: '10px' }}
+          style={{ marginRight: '5px' }}
           placeholder="Enter file path"
           value={filedata}
           onChange={(e) => setFiledata(e.target.value)}
@@ -852,7 +892,7 @@ const removeRxLines = () => {
         />
 
         <button
-          style={{ marginRight: '10px' }}
+          style={{ marginRight: '5px' }}
           type="submit"
           onClick={getFileData1}
         >
@@ -861,16 +901,16 @@ const removeRxLines = () => {
 
         <input
           type="text"
-          style={{ marginRight: '10px' }}
+          style={{ marginRight: '5px' }}
           placeholder="Search by Message Type"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button style={{ marginRight: '10px' }} onClick={searchData}>
+        <button style={{ marginRight: '5px' }} onClick={searchData}>
           Search by Message Type
         </button>
         <button
-          style={{ marginRight: '10px' }}
+          style={{ marginRight: '5px' }}
           type="submit"
           onClick={clearData}
         >
@@ -998,9 +1038,54 @@ const removeRxLines = () => {
         }}
       ></textarea>
       </div>
+        <button style={{
+            marginLeft: '10px',
+            marginRight: '5px',
+            background: 'white',
+            color: 'white',
+          }} onClick={removeRxLines}
+           title="Remove Rx Lines">🗑️📩</button>
+             <button style={{
+            marginLeft: '5px',
+            marginRight: '5px',
+            background: 'white',
+            color: 'white',
+          }} onClick={splitprocessText}
+          title = "Split into bytes">✂️🧩</button>
+        <button style={{
+            marginLeft: '5px',
+            marginRight: '5px',
+            background: 'white',
+            color: 'white',
+          }} onClick={processText}
+          title = "Remove Rx & Merge Tx">❌📩➕📤</button>
+             <button style={{
+            marginLeft: '5px',
+            marginRight: '5px',
+            background: 'white',
+            color: 'white',
+          }} onClick={splitprocessTextTx}
+          title = "Add Tx">➕📤</button>
+          <button style={{
+            marginLeft: '5px',
+            marginRight: '5px',
+            background: 'white',
+            color: 'white',
+          }} onClick={processTextTx}
+          title = "Remove Tx & Merge Rx">❌📤➕📩</button>
+          
+          
+         <button style={{
+            marginLeft: '5px',
+            marginRight: '5px',
+            background: 'white',
+            color: 'white',
+          }} onClick={splitprocessTextRx}
+          title = "Add Rx">➕📩</button>
+         
         <input
           type="text"
-          style={{ marginRight: '10px', marginLeft: '500px'  }}
+          style={{ marginRight: '10px', marginLeft: '25px'  }}
           placeholder="Conversion Text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
@@ -1034,13 +1119,13 @@ const removeRxLines = () => {
         />
 
         <br />
-        <button style={{ marginLeft: '10px', marginRight: '10px',   background: 'green',
+        <button style={{ marginLeft: '10px', marginRight: '5px',   background: 'green',
             color: 'white',}} onClick={extract9thByte}>Msg Type</button>
         <button
           onClick={splitHex}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1051,8 +1136,8 @@ const removeRxLines = () => {
         <button
           onClick={remSpaces}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1062,8 +1147,8 @@ const removeRxLines = () => {
         <button
           onClick={reverseData}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1074,8 +1159,8 @@ const removeRxLines = () => {
         <button
           onClick={convertToDecimal}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1085,8 +1170,8 @@ const removeRxLines = () => {
         <button
           onClick={convertToDecimalReverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1096,8 +1181,8 @@ const removeRxLines = () => {
         <button
           onClick={ConvertToBinary}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1107,8 +1192,8 @@ const removeRxLines = () => {
         <button
           onClick={ConvertToBinaryReverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1118,8 +1203,8 @@ const removeRxLines = () => {
         <button
           onClick={Dictionary_data}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1129,8 +1214,8 @@ const removeRxLines = () => {
         <button
           onClick={Display_units}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1140,8 +1225,8 @@ const removeRxLines = () => {
         <button
           onClick={Display_time}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1151,8 +1236,8 @@ const removeRxLines = () => {
         <button
           onClick={NoOfCharacters}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1162,8 +1247,8 @@ const removeRxLines = () => {
         <button
           onClick={NoOfWords}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1173,8 +1258,8 @@ const removeRxLines = () => {
         <button
           onClick={checksum}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1184,32 +1269,20 @@ const removeRxLines = () => {
         <button
           onClick={msglgt}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
         >
           Msg Length{' '}
         </button>
-        <button style={{
-            marginLeft: '10px',
-            marginRight: '10px',
-            background: 'green',
-            color: 'white',
-          }} onClick={removeRxLines}>Remove Rx Lines</button>
-        <button style={{
-            marginLeft: '10px',
-            marginRight: '10px',
-            background: 'green',
-            color: 'white',
-          }} onClick={processText}>Remove Rx & Merge Tx</button>
-        <br />
+       <br />
         <button
           onClick={convertToHex}
           style={{
             marginLeft: '10px',
-            marginRight: '10px',
+            marginRight: '5px',
             background: '#FF5c26',
             color: 'white',
           }}
@@ -1219,8 +1292,8 @@ const removeRxLines = () => {
         <button
           onClick={convertToHexInReverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#FF5c26',
             color: 'white',
           }}
@@ -1231,8 +1304,8 @@ const removeRxLines = () => {
         <button
           onClick={convertTofloat}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#3366ff',
             color: 'white',
           }}
@@ -1242,8 +1315,8 @@ const removeRxLines = () => {
         <button
           onClick={convertTofloat2}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#3366ff',
             color: 'white',
           }}
@@ -1254,8 +1327,8 @@ const removeRxLines = () => {
         <button
           onClick={convertTofloattwoByte}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1265,8 +1338,8 @@ const removeRxLines = () => {
         <button
           onClick={convertTofloattwoByteReverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1277,8 +1350,8 @@ const removeRxLines = () => {
         <button
           onClick={convertToInt2}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#5c2049',
             color: 'white',
           }}
@@ -1288,8 +1361,8 @@ const removeRxLines = () => {
         <button
           onClick={convertToInt2Reverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#5c2049',
             color: 'white',
           }}
@@ -1299,8 +1372,8 @@ const removeRxLines = () => {
         <button
           onClick={convertToInt4Byte}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1310,8 +1383,8 @@ const removeRxLines = () => {
         <button
           onClick={convertToInt4ByteReverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1321,8 +1394,8 @@ const removeRxLines = () => {
         <button
           onClick={signedconvertToInt2Byte}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#5c2049',
             color: 'white',
           }}
@@ -1332,8 +1405,8 @@ const removeRxLines = () => {
         <button
           onClick={signedconvertToInt2ByteReverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#5c2049',
             color: 'white',
           }}
@@ -1343,8 +1416,8 @@ const removeRxLines = () => {
         <button
           onClick={signedconvertToInt4Byte}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1354,8 +1427,8 @@ const removeRxLines = () => {
         <button
           onClick={signedconvertToInt4ByteReverse}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: 'green',
             color: 'white',
           }}
@@ -1365,8 +1438,8 @@ const removeRxLines = () => {
         <button
           onClick={convertHexToDouble}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#3366ff',
             color: 'white',
           }}
@@ -1376,8 +1449,8 @@ const removeRxLines = () => {
         <button
           onClick={reverseconvertHexToDouble}
           style={{
-            marginLeft: '10px',
-            marginRight: '10px',
+            marginLeft: '5px',
+            marginRight: '5px',
             background: '#3366ff',
             color: 'white',
           }}

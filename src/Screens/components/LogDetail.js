@@ -78,7 +78,7 @@ const LogDetail = () => {
     const filtered = processedResults.filter((result, index) => {
       // Extract characters from index 26 to 27
       const chars26and27 = result.rawRx.substring(21, 23); 
-      console.log(chars26and27)// Assuming `result.rawRx` holds the string
+     
       return chars26and27.includes(searchQuery); // Check if searchQuery is present in the substring
     })
     if (filtered.length > 0) {
@@ -86,7 +86,7 @@ const LogDetail = () => {
       setInputData(filteredData);
     } else {
       setInputData(""); 
-      console.log(filtered.length)
+    
     }
     setIsDataUpdated(true);
   };
@@ -143,6 +143,53 @@ const LogDetail = () => {
     const data = `${hr}:${minute}:${second}`;
     return data;
   };
+  const convertToAscii = (text, x1, x2) => {
+  // Extract slice from text array
+  const hexSlice = text.slice(x1, x2 + 1);
+  console.log("hex slice"+text, x1,x2+1)
+  
+  const byteArray = hexSlice.map(h => parseInt(h, 16));
+
+  // Convert bytes to ASCII string
+  const asciiString = String.fromCharCode(...byteArray);
+
+  return asciiString;
+};
+
+// Converts a slice of the hex array (from x1 to x2) into a float32
+const convertHexToFloat = (text, x1, x2) => {
+  const testbyte = text.slice(x1, x2 + 1);
+
+
+  if (testbyte.length !== 4) {
+    throw new Error(`Expected exactly 4 bytes, but got ${testbyte.length}`);
+  }
+
+  // Delegate actual conversion to helper
+  return convertHexToFloatFromBytes(testbyte);
+};
+
+// Convert 4 hex bytes array (e.g. ['60', '50', '29', '35']) to float32
+const convertHexToFloatFromBytes = (testbyte) => {
+  // Convert hex strings to integer bytes, then reverse for little-endian
+  const byteArray = testbyte.map(h => parseInt(h, 16));
+ 
+
+  // Setup buffer and DataView for binary data manipulation
+  const buffer = new ArrayBuffer(4);
+  const view = new DataView(buffer);
+
+  // Write each byte into the DataView buffer
+  byteArray.forEach((byte, i) => view.setUint8(i, byte));
+
+  // Read the 4 bytes as a float32 (little-endian)
+  return view.getInt32(0, true);
+};
+
+
+
+
+
 
   const splitBytetoBit = (data, byteIndex, bitIndex, absentMsg, presentMsg) => {
     const hexValue = data[byteIndex];
@@ -161,7 +208,7 @@ const LogDetail = () => {
   };
 
   const ConvertLongDataHextoReverse = (text, x1, x2) => {
-    const data = hexToReversedString(ConvertLongData(text, x1, x2));
+    const data = (ConvertLongData(text, x1, x2)).split('').reverse().join('');
     return data;
   };
 
@@ -178,6 +225,11 @@ const LogDetail = () => {
   const hexToDecimal = (value) => {
     return parseInt(value, 16).toString();
   };
+const HardwareVer = (listData, x1, x2) => {
+  const slice = listData.slice(x1, x2 + 1);
+  const chars = slice.map(hexStr => String.fromCharCode(parseInt(hexStr, 16)));
+  return chars.join('.');
+};
 
   function convert2ByteFloat(text, x1, x2) {
     const data1 = convert(text)[x1];
@@ -381,7 +433,31 @@ const LogDetail = () => {
                 const result3C = handle0x3Cprocess(listData);
                 if (result3C) processedResults.push(...result3C);
                 break;
-              default:
+                 case '12':
+                const result12 = handle0x12process(listData);
+                if (result12) processedResults.push(...result12);
+                break;
+             case '13':
+                const result13 = handle0x13process(listData);
+                if (result13) processedResults.push(...result13);
+                break;
+               case '20':
+                const result20 = handle0x20process(listData);
+                if (result20) processedResults.push(...result20);
+                break;
+            case '21':
+                const result21 = handle0x21process(listData);
+                if (result21) processedResults.push(...result21);
+                break;
+          case '22':
+                const result22 = handle0x22process(listData);
+                if (result22) processedResults.push(...result22);
+                break;
+               case '23':
+                const result23 = handle0x23process(listData);
+                if (result23) processedResults.push(...result23);
+                break;
+                default:
                 processedResults.push({
                   label: 'Unknown message type',
                   value: `Unknown message type: ${eighthByte}`,
@@ -2455,6 +2531,514 @@ const LogDetail = () => {
         databyte: '24 byte',
       },
     ];
+   
+  };
+  const handle0x12process = (listData) => {
+    return [{
+    label: "Input",
+    value: listData.join(' '),
+    databyte: " "
+  },
+  {
+    label: "Msg No",
+    value: listData.slice(x + 3, x + 4).join(''),
+    rawData: listData.slice(x + 3, x + 4).join(' '),
+    databyte: "3 byte"
+  },
+  {
+    label: "Status",
+    value: hexToDecimal(listData.slice(x + 4, x + 5)),
+    rawData: listData.slice(x + 4, x + 5).join(' '),
+    databyte: "4 byte"
+  },
+  {
+    label: "Current channel plan number",
+    value: ConvertLongDataHex(listData, x + 5, x + 6),
+    rawData: listData.slice(x + 5, x + 6).join(' '),
+    databyte: "5 byte"
+  },
+  {
+    label: "FSK channel TX Frequency/US",
+    value: convertHexToFloat(listData, x + 6, x + 9),
+    rawData: listData.slice(x + 6, x + 10).join(' '),
+    databyte: "6 to 9 bytes"
+  },
+  {
+    label: "FSK channel RX1 Frequency/DS",
+    value: convertHexToFloat(listData, x + 10, x + 13),
+    rawData: listData.slice(x + 10, x + 14).join(' '),
+    databyte: "10 to 13 bytes"
+  },
+  {
+    label: "FSK channel RX2 Frequency/DS",
+    value: convertHexToFloat(listData, x + 14, x + 17),
+    rawData: listData.slice(x + 14, x + 18).join(' '),
+    databyte: "14 to 17 bytes"
+  },
+  {
+    label: "Bandwidth",
+    value: convertHexToFloat(listData, x + 18, x + 21),
+    rawData: listData.slice(x + 18, x + 22).join(' '),
+    databyte: "18 to 21 bytes"
+  },
+  {
+    label: "Frequency deviation",
+    value: convertHexToFloat(listData, x + 22, x + 25),
+    rawData: listData.slice(x + 22, x + 26).join(' '),
+    databyte: "22 to 25 bytes"
+  },
+  {
+    label: "Data rate",
+    value: convertHexToFloat(listData, x + 26, x + 29),
+    rawData: listData.slice(x + 26, x + 30).join(' '),
+    databyte: "26 to 29 bytes"
+  },
+  {
+    label: "TX Power",
+    value: convert2ByteFloat(listData, x + 30, x + 31),
+    rawData: listData.slice(x + 30, x + 32).join(' '),
+    databyte: "30 to 31 bytes"
+  },
+  {
+    label: "Gaussian Filter",
+    value: hexToDecimal(listData.slice(x + 32, x + 33)),
+    rawData: listData.slice(x + 32, x + 33).join(' '),
+    databyte: "32 byte"
+  },
+  {
+    label: "RSSI Level",
+    value: convert2ByteFloat(listData, x + 33, x + 34),
+    rawData: listData.slice(x + 33, x + 35).join(' '),
+    databyte: "33 to 34 bytes"
+  },
+  {
+    label: "TX Ramp time",
+    value: convertHexToFloat(listData, x + 35, x + 38),
+    rawData: listData.slice(x + 35, x + 39).join(' '),
+    databyte: "35 to 38 bytes"
+  },
+  {
+    label: "Sync word",
+    value: ConvertLongDataHextoReverse(listData, x + 39, x + 42),
+    rawData: listData.slice(x + 39, x + 43).join(' '),
+    databyte: "39 to 42 bytes"
+  },
+  {
+    label: "Gateway status",
+    value: hexToDecimal(listData.slice(x + 43, x + 44)),
+    rawData: listData.slice(x + 43, x + 44).join(' '),
+    databyte: "43 byte"
+  },
+  {
+    label: "Channel type",
+    value: hexToDecimal(listData.slice(x + 44, x + 45)),
+    rawData: listData.slice(x + 44, x + 45).join(' '),
+    databyte: "44 byte"
+  },
+  {
+    label: "5V DC",
+    value: convert2ByteFloat(listData, x + 45, x + 46),
+    rawData: listData.slice(x + 45, x + 47).join(' '),
+    databyte: "45 to 46 bytes"
+  },
+  {
+    label: "FW 2nd image Version",
+    value: ConvertDotData(listData, x + 47, x + 48),
+    rawData: listData.slice(x + 47, x + 49).join(' '),
+    databyte: "47 to 48 bytes"
+  },
+  {
+    label: "US Frequency",
+    value: convertHexToFloat(listData, x + 49, x + 52),
+    rawData: listData.slice(x + 49, x + 53).join(' '),
+    databyte: "49 to 52 bytes"
+  },
+  {
+    label: "DS Frequency",
+    value: convertHexToFloat(listData, x + 53, x + 56),
+    rawData: listData.slice(x + 53, x + 57).join(' '),
+    databyte: "53 to 56 bytes"
+  },
+  {
+    label: "Frequency Index",
+    value: hexToDecimal(listData.slice(x + 57, x + 58)),
+    rawData: listData.slice(x + 57, x + 58).join(' '),
+    databyte: "57 byte"
+  },
+  {
+    label: "Pad bytes",
+    value: ConvertLongDataHex(listData, x + 58, x + 60),
+    rawData: listData.slice(x + 58, x + 61).join(' '),
+    databyte: "58 to 60 bytes"
+  }];
+   
+  };
+  const handle0x13process = (listData) => {
+    return [
+  {
+    label: "Input",
+    value: listData.join(' '),
+    databyte: " "
+  },
+  {
+    label: "Msg No",
+    value: listData.slice(x + 3, x + 4).join(''),
+    rawData: listData.slice(x + 3, x + 4).join(' '),
+    databyte: "3 byte"
+  },
+  {
+    label: "Status",
+    value: hexToDecimal(listData.slice(x + 4, x + 5)),
+    rawData: listData.slice(x + 4, x + 5).join(' '),
+    databyte: "4 byte"
+  },
+  {
+    label: "Current channel plan number",
+    value: ConvertLongDataHex(listData,x + 5, x + 6),
+    rawData: listData.slice(x + 5, x + 6).join(' '),
+    databyte: "5 byte"
+  },
+  {
+    label: "Channel plan name",
+    value: ConvertLongDataHex(listData, x + 6, x + 29),
+    rawData: listData.slice(x + 6, x + 30).join(' '),
+    databyte: "6 to 29 bytes"
+  },
+  {
+    label: "Pad bytes",
+    value: ConvertLongDataHex(listData, x + 30, x + 55),
+    rawData: listData.slice(x + 30, x + 56).join(' '),
+    databyte: "30 to 55 bytes"
+  }
+];
+   
+  };
+    const handle0x20process = (listData) => {
+    return [
+  {
+    label: "Input",
+    value: listData.join(' '),
+    databyte: " "
+  },
+  {
+    label: "Msg No",
+    value: listData.slice(x + 3, x + 4).join(''),
+    rawData: listData.slice(x + 3, x + 4).join(' '),
+    databyte: "3 byte"
+  },
+  {
+    label: "System Status",
+    value: hexToDecimal(listData.slice(x + 4, x + 5)),
+    rawData: listData.slice(x + 4, x + 5).join(' '),
+    databyte: "4 byte"
+  },
+  {
+    label: "Transponder Firmware Revision",
+    value: ConvertDotData(listData, x + 5, x + 6),
+    rawData: listData.slice(x + 5, x + 7).join(' '),
+    databyte: "5 to 6 bytes"
+  },
+  {
+    label: "Transponder Hardware Revision",
+    value: HardwareVer(listData, x + 7, x + 8),
+    rawData: listData.slice(x + 7, x + 9).join(' '),
+    databyte: "7 to 8 bytes"
+  },
+  {
+    label: "Transponder MFR date",
+    value: date(listData, x + 9, x + 11),
+    rawData: listData.slice(x + 9, x + 12).join(' '),
+    databyte: "9 to 11 bytes"
+  },
+  {
+    label: "Serial Number Size",
+    value: hexToDecimal(listData.slice(x + 12, x + 13)),
+    rawData: listData.slice(x + 12, x + 13).join(' '),
+    databyte: "12 byte"
+  },
+  {
+    label: "Serial Number",
+    value: ConvertLongDataHex(listData, x + 13, x + 28),
+    rawData: listData.slice(x + 13, x + 29).join(' '),
+    databyte: "13 to 28 bytes"
+  },
+  {
+    label: "Model number size",
+    value: hexToDecimal(listData.slice(x + 29, x + 30)),
+    rawData: listData.slice(x + 29, x + 30).join(' '),
+    databyte: "29 byte"
+  },
+  {
+    label: "Model number",
+    value: ConvertLongDataHex(listData, x + 30, x + 54),
+    rawData: listData.slice(x + 30, x + 55).join(' '),
+    databyte: "30 to 54 bytes"
+  },
+  {
+    label: "Pad bytes",
+    value: ConvertLongDataHex(listData.slice(x + 55, x + 56)),
+    rawData: listData.slice(x + 55, x + 56).join(' '),
+    databyte: "55 byte"
+  }
+];
+   
+  };
+     const handle0x21process = (listData) => {
+    return [
+  {
+    label: "Input",
+    value: listData.join(' '),
+    databyte: " "
+  },
+  {
+    label: "Msg No",
+    value: listData.slice(x + 3, x + 4).join(''),
+    rawData: listData.slice(x + 3, x + 4).join(' '),
+    databyte: "3 byte"
+  },
+  {
+    label: "Status",
+    value: hexToDecimal(listData.slice(x + 4, x + 5)),
+    rawData: listData.slice(x + 4, x + 5).join(' '),
+    databyte: "4 byte"
+  },
+  {
+    label: "Transponder Vendor Name",
+    value: ConvertLongDataHex(listData, x + 13, x + 44),
+    rawData: listData.slice(x + 13, x + 45).join(' '),
+    databyte: "13 to 44 bytes"
+  },
+  {
+    label: "Transponder loader Version",
+    value: ConvertDotData(listData, x + 45, x + 46),
+    rawData: listData.slice(x + 45, x + 47).join(' '),
+    databyte: "45 to 46 bytes"
+  },
+  {
+    label: "Pad bytes",
+    value: ConvertLongDataHex(listData, x + 47, x + 55),
+    rawData: listData.slice(x + 47, x + 56).join(' '),
+    databyte: "47 to 55 bytes"
+  }
+];  
+  };
+   const handle0x22process = (listData) => {
+    return [
+  {
+    label: "Input",
+    value: listData.join(' '),
+    databyte: " "
+  },
+  {
+    label: "Msg No",
+    value: listData.slice(x + 3, x + 4).join(''),
+    rawData: listData.slice(x + 3, x + 4).join(' '),
+    databyte: "3 byte"
+  },
+  {
+    label: "System Status (00 -> FMT, 01 -> FMB, 10 -> FML)",
+    value: hexToDecimal(listData.slice(x + 4, x + 5)),
+    rawData: listData.slice(x + 4, x + 5).join(' '),
+    databyte: "4 byte"
+  },
+  {
+    label: "Support Status",
+    value: hexToDecimal(listData.slice(x + 5, x + 6)),
+    rawData: listData.slice(x + 5, x + 6).join(' '),
+    databyte: "5 byte"
+  },
+  {
+    label: "Temperature",
+    value: convert2ByteSigned(listData, x + 6, x + 7),
+    rawData: listData.slice(x + 6, x + 8).join(' '),
+    databyte: "6 to 7 bytes"
+  },
+  {
+    label: "24VDC",
+    value: convert2ByteSigned(listData, x + 8, x + 9),
+    rawData: listData.slice(x + 8, x + 10).join(' '),
+    databyte: "8 to 9 bytes"
+  },
+  {
+    label: "8VDC",
+    value: convert2ByteSigned(listData, x + 10, x + 11),
+    rawData: listData.slice(x + 10, x + 12).join(' '),
+    databyte: "10 to 11 bytes"
+  },
+  {
+    label: "5VDC",
+    value: convert2ByteSigned(listData, x + 12, x + 13),
+    rawData: listData.slice(x + 12, x + 14).join(' '),
+    databyte: "12 to 13 bytes"
+  },
+  {
+    label: "AC Input Voltage",
+    value: convert2ByteSigned(listData, x + 14, x + 15),
+    rawData: listData.slice(x + 14, x + 16).join(' '),
+    databyte: "14 to 15 bytes"
+  },
+  {
+    label: "SMU Status",
+    value: hexToDecimal(listData.slice(x + 16, x + 17)),
+    rawData: listData.slice(x + 16, x + 17).join(' '),
+    databyte: "16 byte"
+  },
+  {
+    label: "SMU Type",
+    value: hexToDecimal(listData.slice(x + 17, x + 18)),
+    rawData: listData.slice(x + 17, x + 18).join(' '),
+    databyte: "17 byte"
+  },
+  {
+    label: "DS Input byte",
+    value: convert2ByteFloat(listData, x + 18, x + 19),
+    rawData: listData.slice(x + 18, x + 20).join(' '),
+    databyte: "18 to 19 bytes"
+  },
+  {
+    label: "RPF Split Status",
+    value: hexToDecimal(listData.slice(x + 20, x + 21)),
+    rawData: listData.slice(x + 20, x + 21).join(' '),
+    databyte: "20 byte"
+  },
+  {
+    label: "Aux Port 2/3 Plug-In-Type",
+    value: hexToDecimal(listData.slice(x + 21, x + 22)),
+    rawData: listData.slice(x + 21, x + 22).join(' '),
+    databyte: "21 byte"
+  },
+  {
+    label: "DS Output port 2",
+    value: convert2ByteFloat(listData, x + 22, x + 23),
+    rawData: listData.slice(x + 22, x + 24).join(' '),
+    databyte: "22 to 23 bytes"
+  },
+  {
+    label: "DS Output port 3",
+    value: convert2ByteFloat(listData, x + 24, x + 25),
+    rawData: listData.slice(x + 24, x + 26).join(' '),
+    databyte: "24 to 25 bytes"
+  },
+  {
+    label: "US Output byte",
+    value: convert2ByteFloat(listData, x + 26, x + 27),
+    rawData: listData.slice(x + 26, x + 28).join(' '),
+    databyte: "26 to 27 bytes"
+  },
+  {
+    label: "LED Status",
+    value: convert2ByteSigned(listData, x + 28, x + 29),
+    rawData: listData.slice(x + 28, x + 30).join(' '),
+    databyte: "28 to 29 bytes"
+  },
+  {
+    label: "RPF-IDent Split",
+    value: hexToDecimal(listData.slice(x + 30, x + 31)),
+    rawData: listData.slice(x + 30, x + 31).join(' '),
+    databyte: "30 byte"
+  },
+  {
+    label: "DS Pilot level",
+    value: convert2ByteFloat(listData, x + 31, x + 32),
+    rawData: listData.slice(x + 31, x + 33).join(' '),
+    databyte: "31 to 32 bytes"
+  },
+  {
+    label: "DS Output port 4",
+    value: convert2ByteFloat(listData, x + 33, x + 34),
+    rawData: listData.slice(x + 33, x + 35).join(' '),
+    databyte: "33 to 34 bytes"
+  },
+  {
+    label: "DS Output port 5",
+    value: convert2ByteFloat(listData, x + 35, x + 36),
+    rawData: listData.slice(x + 35, x + 37).join(' '),
+    databyte: "35 to 36 bytes"
+  },
+  {
+    label: "DS Output port 6",
+    value: convert2ByteFloat(listData, x + 37, x + 38),
+    rawData: listData.slice(x + 37, x + 39).join(' '),
+    databyte: "37 to 38 bytes"
+  },
+  {
+    label: "Auxiliary Plug in Port 2",
+    value: hexToDecimal(listData.slice(x + 39, x + 40)),
+    rawData: listData.slice(x + 39, x + 40).join(' '),
+    databyte: "39 byte"
+  },
+  {
+    label: "Auxiliary Plug in Port 3",
+    value: hexToDecimal(listData.slice(x + 40, x + 41)),
+    rawData: listData.slice(x + 40, x + 41).join(' '),
+    databyte: "40 byte"
+  },
+  {
+    label: "Universal Plug-In Type",
+    value: hexToDecimal(listData.slice(x + 41, x + 42)),
+    rawData: listData.slice(x + 41, x + 42).join(' '),
+    databyte: "41 byte"
+  },
+  {
+    label: "Auxiliary Plug 5/6 Plug-In-Type",
+    value: hexToDecimal(listData.slice(x + 42, x + 43)),
+    rawData: listData.slice(x + 42, x + 43).join(' '),
+    databyte: "42 byte"
+  },
+  {
+    label: "Auxiliary Plug in Port 5",
+    value: hexToDecimal(listData.slice(x + 43, x + 44)),
+    rawData: listData.slice(x + 43, x + 44).join(' '),
+    databyte: "43 byte"
+  },
+  {
+    label: "Auxiliary Plug in Port 6",
+    value: hexToDecimal(listData.slice(x + 44, x + 45)),
+    rawData: listData.slice(x + 44, x + 45).join(' '),
+    databyte: "44 byte"
+  },
+  {
+    label: "Pad Byte",
+    value: hexToDecimal(listData.slice(x + 45, x + 46)),
+    rawData: listData.slice(x + 45, x + 46).join(' '),
+    databyte: "45 byte"
+  }
+]
+   
+  };
+ const handle0x23process = (listData) => {
+    return [
+  {
+    label: "Input",
+    value: listData.join(' '),
+    databyte: " "
+  },
+  {
+    label: "Msg No",
+    value: listData.slice(x + 3, x + 4).join(''),
+    rawData: listData.slice(x + 3, x + 4).join(' '),
+    databyte: "3 byte"
+  },
+  {
+    label: "Status",
+    value: hexToDecimal(listData.slice(x + 4, x + 5)),
+    rawData: listData.slice(x + 4, x + 5).join(' '),
+    databyte: "4 byte"
+  },
+  {
+    label: "Configuration Name",
+    value: ConvertLongDataHex(listData, x + 5, x + 36),
+    rawData: listData.slice(x + 5, x + 37).join(' '),
+    databyte: "5 to 36 bytes"
+  },
+  {
+    label: "Pad bytes",
+    value: ConvertLongDataHex(listData, x + 53, x + 55),
+    rawData: listData.slice(x + 53, x + 56).join(' '),
+    databyte: "53 to 55 bytes"
+  }
+]
+   
   };
   const handleClear = () => {
     setResults([]);
