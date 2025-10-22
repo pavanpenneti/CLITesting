@@ -687,17 +687,34 @@ const splitprocessTextTx = () => {
     setResult(decimalNumber);
   };
 
-  const ConvertToBinary = (event) => {
-    event.preventDefault();
-    const decimalNumber = parseInt(inputText, 16);
-    const binaryString = decimalNumber.toString(2);
-    setResult(binaryString);
-  };
   const ConvertToBinaryReverse = (event) => {
     event.preventDefault();
-    const reversedHex = inputText.split('').reverse().join('');
-    const decimalNumber = parseInt(reversedHex, 16);
-    const binaryString = decimalNumber.toString(2);
+     const decimalNumber = parseInt(inputText, 16);
+  const binaryStringRaw = decimalNumber.toString(2);
+
+  // Calculate the number of bytes needed
+  const bitLength = binaryStringRaw.length;
+  const byteLength = Math.ceil(bitLength / 8); // round up to nearest byte
+  const totalBits = byteLength * 8;
+
+  // Pad binary string to full byte length
+  const binaryString = binaryStringRaw.padStart(totalBits, '0');
+
+  const reversedBinary = binaryString.split('').reverse().join('');
+    setResult(reversedBinary);
+  };
+  const ConvertToBinary = (event) => {
+    event.preventDefault();
+     const decimalNumber = parseInt(inputText, 16);
+  const binaryStringRaw = decimalNumber.toString(2);
+
+  // Calculate the number of bytes needed
+  const bitLength = binaryStringRaw.length;
+  const byteLength = Math.ceil(bitLength / 8); // round up to nearest byte
+  const totalBits = byteLength * 8;
+
+  // Pad binary string to full byte length
+  const binaryString = binaryStringRaw.padStart(totalBits, '0');
     setResult(binaryString);
   };
 

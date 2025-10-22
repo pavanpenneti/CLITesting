@@ -186,6 +186,7 @@ const DiagnosticsTool = () => {
 
   };
   const convertToBinary = (hexValue) => {
+    
     const binaryValue = parseInt(hexValue, 16).toString(2).padStart(8, '0');
     return binaryValue.split('').reverse().join('');
   };
@@ -291,15 +292,32 @@ const DiagnosticsTool = () => {
     return decimalNumber;
   };
   const ConvertToBinary = (data) => {
-    const decimalNumber = parseInt(data, 16);
-    const binaryString = decimalNumber.toString(2);
+        const decimalNumber = parseInt(data.replace(/\s+/g, ''), 16);
+  const binaryStringRaw = decimalNumber.toString(2);
+
+  // Calculate the number of bytes needed
+  const bitLength = binaryStringRaw.length;
+  const byteLength = Math.ceil(bitLength / 8); // round up to nearest byte
+  const totalBits = byteLength * 8;
+
+  // Pad binary string to full byte length
+  const binaryString = binaryStringRaw.padStart(totalBits, '0');
     return binaryString;
   };
   const ConvertToBinaryReverse = (data) => {
-    const reversedHex = data.split('').reverse().join('');
-    const decimalNumber = parseInt(reversedHex, 16);
-    const binaryString = decimalNumber.toString(2);
-    return binaryString;
+    const decimalNumber = parseInt(data.replace(/\s+/g, ''), 16);
+  const binaryStringRaw = decimalNumber.toString(2);
+
+  // Calculate the number of bytes needed
+  const bitLength = binaryStringRaw.length;
+  const byteLength = Math.ceil(bitLength / 8); // round up to nearest byte
+  const totalBits = byteLength * 8;
+
+  // Pad binary string to full byte length
+  const binaryString = binaryStringRaw.padStart(totalBits, '0');
+
+  const reversedBinary = binaryString.split('').reverse().join('');
+    return reversedBinary;
   };
   const Display_time = (data) => {
     const hexWithoutSpaces = data.replace(/\s/g, '');
