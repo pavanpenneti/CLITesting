@@ -10,7 +10,9 @@ import {
   faNetworkWired,
   faDatabase,
   faSignal,
-  faFileAlt 
+  faFileAlt,
+  faTable,
+  faFileExcel
 } from '@fortawesome/free-solid-svg-icons';
 
 function LogData() {
@@ -946,7 +948,7 @@ const splitprocessTextTx = () => {
         <button style={{ marginLeft: '2px' }}>
           <Link to="/SetAPIData">
             <FontAwesomeIcon
-              icon={faDatabase}
+              icon={faTable}
               size="1.5x"
               style={iconStyle}
               title="Set & GET API Data"
@@ -962,8 +964,19 @@ const splitprocessTextTx = () => {
               title="Log Data New Protocol"
             />
           </Link>
+          
         </button>
-        
+        <button style={{ marginLeft: '2px' }}>
+          <Link to="/dataRetrivel">
+            <FontAwesomeIcon
+              icon={faFileExcel}
+              size="1.5x"
+              style={iconStyle}
+              title="Data Retrivel"
+            />
+          </Link>
+          
+        </button>
         <button style={{ marginLeft: '2px' }}>
           <Link to="/CLIData">
             <FontAwesomeIcon

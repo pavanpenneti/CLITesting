@@ -40,6 +40,9 @@ break;
 case "/SetAPIData":
 title = "@Pavan | SET & GET API Data";
 break;
+case "/dataRetrivel":
+title = "@Pavan | Data Retrivel";
+break;
 default:
 title = "@Pavan QA Tool";
 }
