@@ -256,6 +256,38 @@ function SetAPIData() {
 
     setOutput(result.trim());
   };
+const handleExtractStartEndByte = () => {
+  const parser = new DOMParser();
+  
+  // Ensure XML is wrapped in a single root to avoid parse errors from comments
+  const xmlDoc = parser.parseFromString(
+    `<root>${rawInput}</root>`,
+    'text/xml'
+  );
+
+  const msgbytes = xmlDoc.getElementsByTagName('msgbyte');
+  let result = '';
+
+  for (let i = 0; i < msgbytes.length; i++) {
+    const bytemsg = msgbytes[i].getAttribute('bytemsg');
+    if (bytemsg) result += `Message Byte: ${bytemsg}\n`;
+
+    const attributes = msgbytes[i].getElementsByTagName('attribute-binding');
+    for (let j = 0; j < attributes.length; j++) {
+      const name = attributes[j].getAttribute('name');
+      const stxindex = attributes[j].getAttribute('stxindex');
+      const endindex = attributes[j].getAttribute('endindex');
+
+      if (name)
+        result += `  ${name} (Start: ${stxindex}, End: ${endindex})\n`;
+    }
+
+    result += `\n`; // spacing between each msgbyte section
+  }
+
+  setOutput(result.trim());
+};
+
 
   const handleGenerate = () => {
     const lines = output.split('\n').map((line) => line.trim());
@@ -431,11 +463,20 @@ function SetAPIData() {
                 <Button
                   variant="contained"
                   color="primary"
-                  sx={{ marginBottom: 1 }}
+                  sx={{ marginBottom: 1, marginRight:2}}
                   onClick={handleExtract}
-                  fullWidth
+                  
                 >
-                  Extract
+                  Extract Variables
+                </Button> 
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{ marginBottom: 1 }}
+                  onClick={handleExtractStartEndByte}
+                  
+                >
+                  Extract Variables (Start Byte & End Byte)
                 </Button>
                 {output && (
                   <TextField

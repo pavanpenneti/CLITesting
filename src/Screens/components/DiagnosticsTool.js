@@ -190,14 +190,23 @@ const DiagnosticsTool = () => {
     const binaryValue = parseInt(hexValue, 16).toString(2).padStart(8, '0');
     return binaryValue.split('').reverse().join('');
   };
-  const splitBytetoBit = (splitdata, row) => {
-    let hexBytes = splitdata.split(' ');
-    const hexValue = hexToDecimal(hexBytes[row.extraTextBoxes[0]]);
-    const binaryValue = convertToBinary(hexValue);
-    return binaryValue[row.extraTextBoxes[0]] === '1'
-      ? row.extraTextBoxes[2]
-      : row.extraTextBoxes[1];
-  };
+ const splitBytetoBit = (splitdata, row) => {
+  // Convert hex string (e.g., "7") to decimal
+  const hexValue = parseInt(splitdata, 16);
+
+  // Convert decimal to 8-bit binary (e.g., "00000111")
+  const binaryValue = hexValue.toString(2).padStart(8, '0');
+
+  // Get bit index (0–7)
+  const bitIndex = parseInt(row.extraTextBoxes[0]);
+
+  // Get the bit at that index (from right → left)
+  const bit = binaryValue[7 - bitIndex];
+
+  // Return corresponding text
+  return bit === '1' ? row.extraTextBoxes[2]+ " [Bit Index: "+bitIndex +", Binary Value: "+binaryValue+"]": row.extraTextBoxes[1]+ " [Bit Index: "+bitIndex +", Binary Value: "+binaryValue+"]";
+};
+
 
   function convert2Values(splitdata, row) {
     const data1 = splitdata.split(' ');
