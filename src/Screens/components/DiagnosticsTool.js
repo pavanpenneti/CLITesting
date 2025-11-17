@@ -18,6 +18,7 @@ const DiagnosticsTool = () => {
 
   const options = [
     'mergeData',
+    'Date and Time',
     'date',
     'Version',
     'Hardware Rev.',
@@ -54,6 +55,7 @@ const DiagnosticsTool = () => {
     '~Hex_4b_Int',
     'Hex_4b_Float',
     '~Hex_4b_Float',
+    
   ];
   const handleFileUpload1 = (event) => {
     const uploadedFile = event.target.files[0];
@@ -116,6 +118,23 @@ const DiagnosticsTool = () => {
   const mergeData = (data) => {
     return data.replace(/\s+/g, '');
   };
+const time_date = (data) => {
+ const bytes = data.trim().split(" ");
+  if (bytes.length !== 6) {
+    throw new Error("Input must contain 6 hex bytes separated by spaces.");
+  }
+
+  // Convert hex → decimal
+  let [yy, mm, dd, hh, mi, ss] = bytes.map(v => parseInt(v, 16));
+
+  // Convert 2-digit year to 4-digit year
+  yy = 2000 + yy;
+
+  // Zero-pad for proper formatting
+  const pad = (n) => String(n).padStart(2, "0");
+
+  return `${yy}-${pad(mm)}-${pad(dd)} ${pad(hh)}:${pad(mi)}:${pad(ss)}`;
+};
   const reverseData = (data) => {
     return data.split(' ').reverse().join(' ');
   };
@@ -204,7 +223,9 @@ const DiagnosticsTool = () => {
   const bit = binaryValue[7 - bitIndex];
 
   // Return corresponding text
-  return bit === '1' ? row.extraTextBoxes[2]+ " [Bit Index: "+bitIndex +", Binary Value: "+binaryValue+"]": row.extraTextBoxes[1]+ " [Bit Index: "+bitIndex +", Binary Value: "+binaryValue+"]";
+ return bit === '1'
+  ? `${row.extraTextBoxes[2]} [Bit index: ${bitIndex} → ${bit}, Byte in binary: ${binaryValue}]`
+  : `${row.extraTextBoxes[1]} [Bit index: ${bitIndex} → ${bit}, Byte in binary: ${binaryValue}]`;
 };
 
 
@@ -752,6 +773,10 @@ const convertToInt2Reverse = (data) => {
         case 'mergeData':
             methodName = 'mergeData';
             processedData = mergeData(slicedData); // Example for Merge: remove spaces
+            break;
+        case 'Date and Time':
+            methodName = 'time_date';
+            processedData = time_date(slicedData); // Example for Merge: remove spaces
             break;
         case 'date':
             methodName = 'date';
