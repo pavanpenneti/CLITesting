@@ -35,6 +35,9 @@ function DailyReport() {
   const [inputText, setInputText] = useState("");
    const [tableData, setTableData] = useState([]);
   const [columns, setColumns] = useState([]);
+const [groupedData, setGroupedData] = useState([]);
+const [input, setInput] = useState("");
+ 
   const fields = [
     "JIRA TT's Added",
     "JIRA TT's Modified",
@@ -309,6 +312,74 @@ const parseData = () => {
 
   setPayloadTableRows(parsed);
 };
+  const normalizeDesc = (desc) => {
+    if (!desc) return "";
+    return desc.replace(/\s+byte\s*\d+(\s*\(.*\))?$/i, "").trim();
+  };
+
+  // -------------------------------
+  // Group consecutive bytes with same description
+  // -------------------------------
+  const groupBytes = (data) => {
+  const result = [];
+  if (data.length === 0) return result;
+
+  let start = data[0].byte;
+  let prevDesc = normalizeDesc(data[0].desc) || "Pad Bytes";
+
+  for (let i = 1; i <= data.length; i++) {
+    const currentDesc =
+      i < data.length ? normalizeDesc(data[i].desc) || "Pad Bytes" : null;
+
+    if (i === data.length || currentDesc !== prevDesc) {
+      const end = data[i - 1].byte;
+      result.push({ content: prevDesc || "Pad Bytes", startByte: start, endByte: end });
+
+      if (i < data.length) {
+        start = data[i].byte;
+        prevDesc = currentDesc;
+      }
+    }
+  }
+
+  return result;
+};
+
+
+  // -------------------------------
+  // Parse textarea input
+  // -------------------------------
+const parseData1 = () => {
+  const lines = input.split("\n").filter((l) => l.trim() !== "");
+  const bytes = [];
+
+  lines.forEach((line) => {
+    const match = line.match(/Data Byte (\d+)\s+(?:[^\t]*\t)?([^\t]*)/i);
+    if (match) {
+      let desc = match[2] ? match[2].trim() : "";
+
+      // clean "byte X (LSB/MSB)"
+      desc = desc.replace(/\s+byte\s*\d+(\s*\(.*\))?$/i, "").trim();
+
+      if (!desc) desc = "Pad Bytes";
+
+      bytes.push({ byte: parseInt(match[1]), desc });
+    }
+  });
+
+  const grouped = groupBytes(bytes);
+
+  // 🔹 REMOVE first 2 rows and last row
+  const trimmed =
+    grouped.length > 3
+      ? grouped.slice(2, grouped.length - 1)
+      : [];
+
+  setGroupedData(trimmed);
+};
+
+
+
 
   return (
 //     <div>
@@ -667,7 +738,7 @@ const parseData = () => {
           <Paper key={index} sx={{ p: 1, mb: 1, bgcolor: '#f1f1f1' }}>{report}</Paper>
         ))}
 
-        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>Payload Byte Table Generator</Typography>
+        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>Payload Byte Table Generator for Bulk Msg Protocol</Typography>
         <TextareaAutosize
           minRows={10}
           value={rawPayloadText}
@@ -712,8 +783,67 @@ const parseData = () => {
             </Table>
           </TableContainer>
         )}
+       
+
+
+        
       </Box>
+       <div style={{ padding: 20 }}>
+      <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+        Payload Byte Table Generator for CMS
+      </Typography>
+
+      <TextareaAutosize
+        minRows={10}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Paste tab-separated payload data here for CMS"
+        onKeyDown={(e) => {
+          if (e.key === "Tab") {
+            e.preventDefault();
+            const start = e.target.selectionStart;
+            const end = e.target.selectionEnd;
+            setInput(input.substring(0, start) + "\t" + input.substring(end));
+            setTimeout(() => {
+              e.target.selectionStart = e.target.selectionEnd = start + 1;
+            }, 0);
+          }
+        }}
+        style={{ width: "100%", fontFamily: "monospace", padding: 8 }}
+      />
+
+      <Button variant="contained" sx={{ mt: 1 }} onClick={parseData1}>
+        Submit
+      </Button>
+
+      {groupedData.length > 0 && (
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>varByte</TableCell>
+                <TableCell>startByte</TableCell>
+                <TableCell>endByte</TableCell>
+                <TableCell>selectedOption</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {groupedData.map((row, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>{row.content}</TableCell>
+                  <TableCell>{row.startByte}</TableCell>
+                  <TableCell>{row.endByte}</TableCell>
+                  <TableCell>data</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </div>
+ 
     </Box>
+    
 
   );
 }
