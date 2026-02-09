@@ -1,223 +1,268 @@
-const express = require('express');
-const snmp = require('net-snmp');
-const cors = require('cors');
+const express = require("express");
+const snmp = require("net-snmp");
+const cors = require("cors");
+const ip = require("ip");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
 
-// OID Mappings
-const OID_MAP = {
-  cardType: '1.3.6.1.4.1.9204.1.1.1.1.2',
-  modelNumber: '1.3.6.1.4.1.9204.1.1.1.1.11',
-  mChnlRxMFNModelNumber: '1.3.6.1.4.1.9204.1.18.1.4.1.3',
-  i2cModuleModelNo: 'AURORA-SYSTEM3000-MIB::i2cModuleModelNo'
+const community = "public";
+
+/* ===================== OIDS ===================== */
+const OIDS = {
+  // MODULES
+  slot: "1.3.6.1.4.1.9204.1.1.1.1.1",
+  cardType: "1.3.6.1.4.1.9204.1.1.1.1.2",
+  serial: "1.3.6.1.4.1.9204.1.1.1.1.3",
+  model: "1.3.6.1.4.1.9204.1.1.1.1.4",
+  mfgDate: "1.3.6.1.4.1.9204.1.1.1.1.6",
+  firmware: "1.3.6.1.4.1.9204.1.1.1.1.8",
+  loader: "1.3.6.1.4.1.9204.1.1.1.1.13",
+
+  // NETWORK
+  ipv4: "1.3.6.1.4.1.9204.1.14.2.1.1.1",
+  subnet: "1.3.6.1.4.1.9204.1.14.2.1.1.2",
+  gateway: "1.3.6.1.4.1.9204.1.14.2.1.1.3",
+  ipv6: "1.3.6.1.4.1.9204.1.14.2.2.1.3",
+  prefix: "1.3.6.1.4.1.9204.1.14.2.2.1.4",
+  nextHop: "1.3.6.1.4.1.9204.1.14.2.2.1.5",
+
+  // I2C MODULES
+  i2cSlot: "1.3.6.1.4.1.9204.1.18.1.6.1.1.1",
+  i2cModel: "1.3.6.1.4.1.9204.1.18.1.6.1.1.3",
+  i2cSerial: "1.3.6.1.4.1.9204.1.18.1.6.1.1.2",
+  i2cFirmware: "1.3.6.1.4.1.9204.1.18.1.6.1.1.15",
+  i2cModuleType: "1.3.6.1.4.1.9204.1.18.1.6.1.1.14",
+  i2cTotalSignals: "1.3.6.1.4.1.9204.1.18.1.6.1.1.8",
+
+  // MFN MODULES
+  mfnSlot: "1.3.6.1.4.1.9204.1.18.1.4.1.1",
+  mfnModel: "1.3.6.1.4.1.9204.1.18.1.4.1.3",
+  mfnSerial: "1.3.6.1.4.1.9204.1.18.1.4.1.2",
+  mfnFirmware: "1.3.6.1.4.1.9204.1.18.1.4.1.14",
+  mfnLoader: "1.3.6.1.4.1.9204.1.18.1.4.1.30"
 };
 
-// Card Type Mapping
-const cardTypeMap = {
-  1: "edfa(1)",
-  2: "powersupplyNoDisplay(2)",
-  3: "receiver3x01(3)",
-  4: "transponder(4)",
-  5: "transmitter(5)",
-  6: "loader(6)",
-  7: "mininode(7)",
-  8: "communication(8)",
-  9: "powersupplyWithDisplay(9)",
-  10: "loptiplex(10)",
-  11: "networkInterface(11)",
-  12: "dualAnalogRPR(12)",
-  13: "analogTransmitter33xx(13)",
-  14: "analogTransmitter351x(14)",
-  17: "opticalSwitch(17)",
-  18: "optical2x2Switch(18)",
-  19: "receiver3x21(19)",
-  20: "receiver3x02(20)",
-  21: "nifNoShelfMonitor(21)",
-  22: "miniOptiPlex(22)",
-  23: "dualChnlTransmitter(23)",
-  24: "analogReceiver(24)",
-  25: "rfABSwitch(25)",
-  26: "digitalTransceiver(26)",
-  27: "ethernetSwitch(27)",
-  28: "cxNoShelfMonitor(28)",
-  29: "analogTransmitter33xxG(29)",
-  30: "linModAT355x(30)",
-  31: "optSwitchMaster(31)",
-  32: "optSwitchSlave(32)",
-  33: "aggregator(33)",
-  34: "optSwitch32MxM(34)",
-  35: "analogTransmitter33XXG(35)",
-  36: "analogTransmitter351X(36)",
-  37: "analogTransmitter33xXG(37)",
-  40: "exModAT355X(40)",
-  41: "t1ModuleGT34xx(41)",
-  45: "highPwrEDFA(45)",
-  46: "opticalReceiver(46)",
-  48: "newTransponder(48)",
-  49: "newOpticalReceiver(49)",
-  50: "exModAnalogTransmitter(50)",
-  51: "newOptical2x2Switch(51)",
-  52: "backPlate_3100(52)",
-  54: "subSlotsController1(54)",
-  55: "quadChannelDigitalReceiver(55)",
-  57: "quadAnalogReceiver(57)",
-  58: "digitalTransceiverDT3550(58)",
-  59: "analogReceiver_1_2G(59)",
-  62: "new2x2OpticalSwitch(62)",
-  63: "exModHT35xx(63)"
-};
+/* ===================== SNMP WALK ===================== */
+// function snmpWalk(target, oid) {
+//   return new Promise((resolve, reject) => {
+//     const session = snmp.createSession(target, community, {
+//       version: snmp.Version2c,
+//       timeout: 3000,
+//       retries: 2
+//     });
 
-// Helper function to perform SNMP walk
-function snmpWalk(ipAddress, oid, community = 'public') {
-  return new Promise((resolve, reject) => {
-    const session = snmp.createSession(ipAddress, community, {
-      version: snmp.Version1,
-      timeout: 5000
-    });
+//     const data = {};
 
-    const results = [];
+//     session.subtree(
+//       oid,
+//       20,
+//       varbinds => {
+//         varbinds.forEach(v => {
+//           if (!snmp.isVarbindError(v)) {
+//             const index = v.oid.substring(oid.length + 1); // full index after base OID
+//             data[index] = v.value;
+//           }
+//         });
+//       },
+//       err => {
+//         session.close();
+//         err ? reject(err) : resolve(data);
+//       }
+//     );
+//   });
+// }
+function snmpWalk(target, oid) {
+  // Helper to create a session and walk for a specific SNMP version
+  function walkWithVersion(version) {
+    return new Promise((resolve, reject) => {
+      const session = snmp.createSession(target, community, {
+        version: version,
+        timeout: 3000,
+        retries: 2
+      });
 
-    function feedCb(varbinds) {
-      for (let i = 0; i < varbinds.length; i++) {
-        if (snmp.isVarbindError(varbinds[i])) {
-          console.error(snmp.varbindError(varbinds[i]));
-        } else {
-          results.push({
-            oid: varbinds[i].oid,
-            value: varbinds[i].value
+      const data = {};
+
+      session.subtree(
+        oid,
+        20,
+        varbinds => {
+          varbinds.forEach(v => {
+            if (!snmp.isVarbindError(v)) {
+              const index = v.oid.substring(oid.length + 1);
+              data[index] = v.value;
+            }
           });
+        },
+        err => {
+          session.close();
+          err ? reject(err) : resolve(data);
         }
-      }
-    }
+      );
+    });
+  }
 
-    function doneCb(error) {
-      session.close();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
+  // Try SNMP v2c first, fallback to v1 if it fails
+  return walkWithVersion(snmp.Version2c).catch(async err => {
+    console.warn(`v2c failed for ${target} OID ${oid}, trying v1...`);
+    try {
+      return await walkWithVersion(snmp.Version1);
+    } catch (err2) {
+      console.error(`Both v2c and v1 failed for ${target} OID ${oid}`);
+      return {}; // return empty object instead of throwing
     }
-
-    const maxRepetitions = 20;
-    session.subtree(oid, maxRepetitions, feedCb, doneCb);
   });
 }
 
-// Main search endpoint
-app.post('/api/snmp-search', async (req, res) => {
-  const { ipAddress, searchType, searchValue } = req.body;
+/* ===================== HELPERS ===================== */
+function firstValue(obj) {
+  const key = Object.keys(obj)[0];
+  return key ? obj[key] : "";
+}
 
-  if (!ipAddress || !searchType || !searchValue) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required parameters'
-    });
+function bufferToIPv6(value) {
+  if (!value || !Buffer.isBuffer(value) || value.length !== 16) return "";
+  const parts = [];
+  for (let i = 0; i < 16; i += 2) {
+    parts.push(value.readUInt16BE(i).toString(16));
   }
+  return parts.join(":").replace(/(^|:)0(:0)+(:|$)/, "::");
+}
+
+/* ===================== SCAN SINGLE IP ===================== */
+async function scanIP(ipAddr) {
+  console.log(`🔍 Scanning ${ipAddr}`);
+
+  async function safeWalk(oid) {
+    try {
+      return await snmpWalk(ipAddr, oid);
+    } catch (err) {
+      console.warn(`⚠️ OID ${oid} failed for ${ipAddr}`);
+      return {};
+    }
+  }
+
+  const [
+    slot, cardType, model, serial, mfgDate, firmware, loader,
+    ipv4Tbl, subnetTbl, gatewayTbl, ipv6Tbl, prefixTbl, nextHopTbl,
+    i2cSlot, i2cModel, i2cSerial, i2cFirmware, i2cModuleType, i2cTotalSignals,
+    mfnSlot, mfnModel, mfnSerial, mfnFirmware, mfnLoader
+  ] = await Promise.all([
+    safeWalk(OIDS.slot),
+    safeWalk(OIDS.cardType),
+    safeWalk(OIDS.model),
+    safeWalk(OIDS.serial),
+    safeWalk(OIDS.mfgDate),
+    safeWalk(OIDS.firmware),
+    safeWalk(OIDS.loader),
+
+    safeWalk(OIDS.ipv4),
+    safeWalk(OIDS.subnet),
+    safeWalk(OIDS.gateway),
+    safeWalk(OIDS.ipv6),
+    safeWalk(OIDS.prefix),
+    safeWalk(OIDS.nextHop),
+
+    safeWalk(OIDS.i2cSlot),
+    safeWalk(OIDS.i2cModel),
+    safeWalk(OIDS.i2cSerial),
+    safeWalk(OIDS.i2cFirmware),
+    safeWalk(OIDS.i2cModuleType),
+    safeWalk(OIDS.i2cTotalSignals),
+
+     safeWalk(OIDS.mfnSlot),
+  safeWalk(OIDS.mfnModel),
+  safeWalk(OIDS.mfnSerial),
+  safeWalk(OIDS.mfnFirmware),
+  safeWalk(OIDS.mfnLoader)
+  ]);
+
+  /* ---------- MODULES ---------- */
+  const moduleIndices = new Set([...Object.keys(slot), ...Object.keys(model), ...Object.keys(serial)]);
+  const modules = [...moduleIndices].map(i => ({
+    slot: parseInt(slot[i], 10) || 0,
+    cardType: cardType[i]?.toString() || "",
+    model: model[i]?.toString() || "",
+    serial: serial[i]?.toString() || "",
+    mfgDate: mfgDate[i]?.toString() || "",
+    firmware: firmware[i]?.toString() || "",
+    loader: loader[i]?.toString() || ""
+  })).sort((a, b) => a.slot - b.slot);
+
+  /* ---------- I2C MODULES ---------- */
+  const i2cIndices = new Set([...Object.keys(i2cSlot), ...Object.keys(i2cModel), ...Object.keys(i2cSerial)]);
+  const i2cModules = [...i2cIndices].map(index => ({
+    slot: index,
+    slotPosition: index,
+    model: i2cModel[index]?.toString() || "",
+    serial: i2cSerial[index]?.toString() || "",
+    firmware: i2cFirmware[index]?.toString() || "",
+    moduleType: i2cModuleType[index] === 1 ? "Active" : i2cModuleType[index] === 0 ? "Passive" : "",
+    totalSignals: i2cTotalSignals[index]?.toString() || ""
+  })).sort((a, b) => a.slot - b.slot);
+
+  /* ---------- MFN MODULES ---------- */
+  const mfnIndices = new Set([
+  ...Object.keys(mfnSlot),
+  ...Object.keys(mfnModel),
+  ...Object.keys(mfnSerial)
+]);
+
+const mfnModules = [...mfnIndices].map(index => ({
+  ip: ipAddr,
+  slot: index,
+  model: mfnModel[index]?.toString() || "",
+  serial: mfnSerial[index]?.toString() || "",
+  firmware: mfnFirmware[index]?.toString() || "",
+  loader: mfnLoader[index]?.toString() || ""
+})).sort((a, b) => a.slot - b.slot);
+
+
+  /* ---------- NETWORK ---------- */
+  const network = {
+    ipv4: firstValue(ipv4Tbl).toString() || "",
+    subnet: firstValue(subnetTbl).toString() || "",
+    gateway: firstValue(gatewayTbl).toString() || "",
+    ipv6: bufferToIPv6(firstValue(ipv6Tbl)),
+    prefix: firstValue(prefixTbl)?.toString() || "",
+    nextHop: bufferToIPv6(firstValue(nextHopTbl))
+  };
+
+  return {
+    ip: ipAddr,
+    success: true,
+    network,
+    modules,
+    i2cModules,
+    mfnModules
+  };
+}
+
+/* ===================== IP RANGE ===================== */
+function ipRange(startIP, endIP) {
+  const list = [];
+  for (let i = ip.toLong(startIP); i <= ip.toLong(endIP); i++) {
+    list.push(ip.fromLong(i));
+  }
+  return list;
+}
+
+/* ===================== API ===================== */
+app.get("/scan", async (req, res) => {
+  const { startIP, endIP } = req.query;
+  if (!startIP || !endIP) return res.status(400).json({ error: "startIP and endIP required" });
 
   try {
-    const oid = OID_MAP[searchType];
-    if (!oid) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid search type'
-      });
-    }
-
-    const snmpResults = await snmpWalk(ipAddress, oid);
-    const matchedResults = [];
-
-    for (const item of snmpResults) {
-      const oidStr = item.oid.join('.');
-      const value = item.value.toString().trim();
-
-      if (!value) continue;
-
-      // Extract slot number from OID
-      const oidParts = oidStr.split('.');
-      const slotNo = oidParts[oidParts.length - 1];
-
-      let match = false;
-      let result = {
-        oid: oidStr,
-        value: value,
-        slotNo: slotNo
-      };
-
-      // Check for match based on search type
-      if (searchType === 'cardType') {
-        const cardTypeNum = parseInt(value);
-        if (cardTypeNum === parseInt(searchValue)) {
-          result.field = 'CardType';
-          result.cardType = cardTypeNum;
-          match = true;
-        }
-      } else if (searchType === 'modelNumber') {
-        if (value.includes(searchValue)) {
-          result.field = 'ModelNumber';
-          match = true;
-        }
-      } else if (searchType === 'mChnlRxMFNModelNumber') {
-        if (value.includes(searchValue)) {
-          result.field = 'mChnlRxMFNModelNumber';
-          match = true;
-        }
-      } else if (searchType === 'i2cModuleModelNo') {
-        if (value.includes(searchValue)) {
-          result.field = 'i2cModuleModelNo';
-          match = true;
-        }
-      }
-
-      if (match) {
-        matchedResults.push(result);
-      }
-    }
-
-    res.json({
-      success: true,
-      results: matchedResults
-    });
-
-  } catch (error) {
-    console.error(`Error searching ${ipAddress}:`, error.message);
-    res.json({
-      success: true,
-      results: [] // Return empty results on error (device might be offline)
-    });
+    const ips = ipRange(startIP, endIP);
+    const results = await Promise.all(ips.map(scanIP));
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Simple SNMP GET endpoint (from previous example)
-app.post('/api/snmp', async (req, res) => {
-  const { ipAddress, community = 'public', oid = '1.3.6.1.2.1.1.1.0' } = req.body;
-
-  const session = snmp.createSession(ipAddress, community);
-
-  session.get([oid], (error, varbinds) => {
-    if (error) {
-      session.close();
-      return res.status(500).json({ error: error.message });
-    }
-
-    const results = varbinds.map(vb => ({
-      oid: vb.oid,
-      type: snmp.ObjectType[vb.type],
-      value: vb.value.toString()
-    }));
-
-    session.close();
-    res.json({ success: true, data: results });
-  });
-});
-
-const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`SNMP Search Tool API server running on http://localhost:${PORT}`);
-  console.log('');
-  console.log('Available endpoints:');
-  console.log('  POST /api/snmp-search - Search SNMP devices');
-  console.log('  POST /api/snmp - Simple SNMP GET');
+/* ===================== START SERVER ===================== */
+app.listen(5000, () => {
+  console.log("🚀 SNMP Backend running on http://localhost:5000");
 });

@@ -1,328 +1,590 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState } from "react";
+import axios from "axios";
 
+/* ---------- HELPERS ---------- */
+const exact = (v, f) => !f || String(v) === String(f);
+const startsWith = (v, f) =>
+  !f || String(v).toLowerCase().startsWith(f.toLowerCase());
+const globalMatch = (row, filter) =>
+  !filter ||
+  Object.values(row)
+    .join(" ")
+    .toLowerCase()
+    .includes(filter.toLowerCase());
+
+/* ---------- SNMPSearchTool ---------- */
 export default function SNMPSearchTool() {
-  const [activeTab, setActiveTab] = useState(0);
-  const [searchInputs, setSearchInputs] = useState({
-    cardType: '',
-    modelNumber: '',
-    mChnlRxMFNModelNumber: '',
-    i2cModuleModelNo: ''
+  const [startIP, setStartIP] = useState("10.27.104.40");
+  const [endIP, setEndIP] = useState("10.27.104.70");
+  const [data, setData] = useState([]);
+  const [view, setView] = useState("modules");
+const [loading, setLoading] = useState(false);
+
+  const [cardFilter, setCardFilter] = useState("");
+  const [slotFilter, setSlotFilter] = useState("");
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [showStatus, setShowStatus] = useState(false);
+
+  const isFiltering =
+  globalFilter ||
+  cardFilter ||
+  slotFilter;
+
+const hasAnyNetworkValue = n =>
+  n.ipv4 !== "-" ||
+  n.subnet !== "-" ||
+  n.gateway !== "-" ||
+  n.ipv6 !== "-" ||
+  n.prefix !== "-" ||
+  n.nextHop !== "-";
+
+ 
+
+  /* ---------- FLATTEN ---------- */
+  const modules = [];
+  const i2c = [];
+  const mfn = [];
+  const networkRows = [];
+  const noModulesIPs = [];
+  const presentCardTypes = new Set();
+
+  data.forEach(d => {
+    if (!d.success) return;
+
+    if (!d.modules || d.modules.length === 0) {
+      noModulesIPs.push(d.ip);
+    }
+
+    d.modules?.forEach(m => {
+      modules.push({ ip: d.ip, ...m });
+      if (m.cardType) presentCardTypes.add(Number(m.cardType));
+    });
+ d.mfnModules?.forEach(m =>
+    mfn.push({ ip: d.ip, ...m }) // <- add the IP
+  );
+    d.i2cModules?.forEach(m =>
+      i2c.push({ ip: d.ip, ...m })
+    );
+
+    if (d.network) {
+      networkRows.push({
+        ip: d.ip,
+        ipv4: d.network.ipv4 || "-",
+        subnet: d.network.subnet || "-",
+        gateway: d.network.gateway || "-",
+        ipv6: d.network.ipv6 || "-",
+        prefix: d.network.prefix || "-",
+        nextHop: d.network.nextHop || "-"
+      });
+    }
   });
-  const [searching, setSearching] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState('');
-  const [results, setResults] = useState([]);
-  const [ipAddresses, setIpAddresses] = useState([]);
-  const abortControllerRef = useRef(null);
-  const resultsEndRef = useRef(null);
 
-  const tabs = [
-    { name: 'CardType', key: 'cardType', placeholder: 'Enter CardType Number' },
-    { name: 'ModelNumber', key: 'modelNumber', placeholder: 'Enter ModelNumber' },
-    { name: 'mChnlRxMFNModelNumber', key: 'mChnlRxMFNModelNumber', placeholder: 'Enter mChnlRxMFNModelNumber' },
-    { name: 'i2cModuleModelNo', key: 'i2cModuleModelNo', placeholder: 'Enter i2cModuleModelNo' }
-  ];
+  /* ---------- CARD TYPE SUMMARY ---------- */
+  const allCardTypes = Array.from({ length: 64 }, (_, i) => i + 1);
+  const notPresent = allCardTypes.filter(
+    c => !presentCardTypes.has(c)
+  );
 
-  const cardTypeMap = {
-    1: "edfa(1)",
-    2: "powersupplyNoDisplay(2)",
-    3: "receiver3x01(3)",
-    4: "transponder(4)",
-    5: "transmitter(5)",
-    6: "loader(6)",
-    7: "mininode(7)",
-    8: "communication(8)",
-    9: "powersupplyWithDisplay(9)",
-    10: "loptiplex(10)",
-    11: "networkInterface(11)",
-    12: "dualAnalogRPR(12)",
-    13: "analogTransmitter33xx(13)",
-    14: "analogTransmitter351x(14)",
-    17: "opticalSwitch(17)",
-    18: "optical2x2Switch(18)",
-    19: "receiver3x21(19)",
-    20: "receiver3x02(20)",
-    21: "nifNoShelfMonitor(21)",
-    22: "miniOptiPlex(22)",
-    23: "dualChnlTransmitter(23)",
-    24: "analogReceiver(24)",
-    25: "rfABSwitch(25)",
-    26: "digitalTransceiver(26)",
-    27: "ethernetSwitch(27)",
-    28: "cxNoShelfMonitor(28)",
-    29: "analogTransmitter33xxG(29)",
-    30: "linModAT355x(30)",
-    31: "optSwitchMaster(31)",
-    32: "optSwitchSlave(32)",
-    33: "aggregator(33)",
-    34: "optSwitch32MxM(34)",
-    35: "analogTransmitter33XXG(35)",
-    36: "analogTransmitter351X(36)",
-    37: "analogTransmitter33xXG(37)",
-    40: "exModAT355X(40)",
-    41: "t1ModuleGT34xx(41)",
-    45: "highPwrEDFA(45)",
-    46: "opticalReceiver(46)",
-    48: "newTransponder(48)",
-    49: "newOpticalReceiver(49)",
-    50: "exModAnalogTransmitter(50)",
-    51: "newOptical2x2Switch(51)",
-    52: "backPlate_3100(52)",
-    54: "subSlotsController1(54)",
-    55: "quadChannelDigitalReceiver(55)",
-    57: "quadAnalogReceiver(57)",
-    58: "digitalTransceiverDT3550(58)",
-    59: "analogReceiver_1_2G(59)",
-    62: "new2x2OpticalSwitch(62)",
-    63: "exModHT35xx(63)"
-  };
+  /* ---------- FILTERED ---------- */
+  const filteredModules = modules
+  .filter(
+    m =>
+      exact(m.cardType, cardFilter) &&   // 🔥 FIXED
+      exact(m.slot, slotFilter) &&        // unchanged
+      globalMatch(m, globalFilter)
+  )
+ .sort(
+  (a, b) =>
+    a.ip.localeCompare(b.ip) ||
+    Number(a.slot) - Number(b.slot) ||      // ✅ slot first
+    Number(a.cardType) - Number(b.cardType) // optional tie-breaker
+);
 
-  // Auto scroll to bottom when new results arrive
-  useEffect(() => {
-    resultsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [results]);
+const filteredMFN = mfn.filter(m => globalMatch(m, globalFilter)).sort(
+    (a, b) =>
+      a.ip.localeCompare(b.ip) ||      // Sort by IP first
+      Number(a.slot) - Number(b.slot)   // Then by slot number
+  );
+  const filteredI2C = i2c
+    .filter(m => globalMatch(m, globalFilter))
+    .sort(
+      (a, b) =>
+        a.ip.localeCompare(b.ip) ||
+        Number(a.slot) - Number(b.slot)
+    );
 
-  const handleInputChange = (key, value) => {
-    setSearchInputs(prev => ({ ...prev, [key]: value }));
-  };
+ const filteredNetwork = networkRows.filter(
+  n => hasAnyNetworkValue(n) && globalMatch(n, globalFilter)
+);
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target.result;
-        const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-        setIpAddresses(lines);
-        alert(`Loaded ${lines.length} IP addresses`);
-      };
-      reader.readAsText(file);
-    }
-  };
 
-  const searchSNMP = async () => {
-    const currentTab = tabs[activeTab];
-    const searchValue = searchInputs[currentTab.key];
+const groupByIP = rows =>
+  rows.reduce((acc, r) => {
+    acc[r.ip] = acc[r.ip] || [];
+    acc[r.ip].push(r);
+    return acc;
+  }, {});
+const scan = async () => {
+  try {
+    setLoading(true);
+    const res = await axios.get("http://localhost:5000/scan", {
+      params: { startIP, endIP }
+    });
+    setData(res.data || []);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    if (!searchValue) {
-      alert('Please enter a search value');
-      return;
-    }
 
-    if (ipAddresses.length === 0) {
-      alert('Please upload IP addresses CSV file first');
-      return;
-    }
+const modulesByIP = filteredModules.reduce((acc, m) => {
+  acc[m.ip] = acc[m.ip] || [];
+  acc[m.ip].push(m);
+  return acc;
+}, {});
+const i2cByIP = filteredI2C.reduce((acc, m) => {
+  acc[m.ip] = acc[m.ip] || [];
+  acc[m.ip].push(m);
+  return acc;
+}, {});
 
-    setSearching(true);
-    setResults([]);
-    abortControllerRef.current = new AbortController();
+ const mfnByIP = filteredMFN.reduce((acc, m) => {
+  acc[m.ip] = acc[m.ip] || [];
+  acc[m.ip].push(m);
+  return acc;
+}, {});
+ return (
+    <>
+      {/* CONTROLS */}
+      {/* CONTROLS – PAPER STYLE */}
+<div style={styles.paper}>
+ 
 
-    try {
-      for (let i = 0; i < ipAddresses.length; i++) {
-        if (abortControllerRef.current.signal.aborted) {
-          break;
-        }
+  <div style={styles.controlRow}>
+    <input
+      style={styles.input}
+      placeholder="Start IP"
+      value={startIP}
+      onChange={e => setStartIP(e.target.value)}
+    />
+    <input
+      style={styles.input}
+      placeholder="End IP"
+      value={endIP}
+      onChange={e => setEndIP(e.target.value)}
+    />
+       <button
+  style={{
+    ...styles.scanBtn,
+    opacity: loading ? 0.7 : 1,
+    cursor: loading ? "not-allowed" : "pointer"
+  }}
+  onClick={scan}
+  disabled={loading}
+>
+  {loading ? "Scanning..." : "Scan"}
+</button>
+<button
+  onClick={() => setShowStatus(s => !s)}
+ 
+   style={view === "modules" ? styles.activeBtn : styles.viewBtn}
+>
+  {showStatus ? "Hide Status" : "Show Status"}
+</button>
+    <input
+      style={styles.input}
+      placeholder="Global Search"
+      onChange={e => setGlobalFilter(e.target.value)}
+    />
+    <input
+      style={styles.input}
+      placeholder="Card Type"
+      onChange={e => setCardFilter(e.target.value)}
+    />
+    <input
+      style={styles.input}
+      placeholder="Slot"
+      onChange={e => setSlotFilter(e.target.value)}
+    />
 
-        const ip = ipAddresses[i];
-        setCurrentStatus(`Searching... ${ip} (${i + 1}/${ipAddresses.length})`);
 
-        try {
-          const response = await fetch('http://localhost:3001/api/snmp-search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ipAddress: ip,
-              searchType: currentTab.key,
-              searchValue: searchValue
-            }),
-            signal: abortControllerRef.current.signal
-          });
+    <button
+      style={view === "modules" ? styles.activeBtn : styles.viewBtn}
+      onClick={() => setView("modules")}
+    >
+      Modules
+    </button>
+ <button
+      style={view === "mfn" ? styles.activeBtn : styles.viewBtn}
+      onClick={() => setView("mfn")}
+    >
+      MFN
+    </button>
+    <button
+      style={view === "i2c" ? styles.activeBtn : styles.viewBtn}
+      onClick={() => setView("i2c")}
+    >
+      I2C
+    </button>
 
-          const data = await response.json();
+    <button
+      style={view === "network" ? styles.activeBtn : styles.viewBtn}
+      onClick={() => setView("network")}
+    >
+      Network
+    </button>
+  
+ 
 
-          if (data.success && data.results && data.results.length > 0) {
-            setResults(prev => [...prev, ...data.results.map(r => ({
-              ...r,
-              ip: ip,
-              timestamp: new Date().toLocaleTimeString()
-            }))]);
-          }
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error(`Error searching ${ip}:`, err);
-          }
-        }
-      }
+  </div>
+</div>
 
-      setCurrentStatus('');
-      setResults(prev => [...prev, {
-        isDone: true,
-        message: '======================================= Done =======================================',
-        timestamp: new Date().toLocaleTimeString()
-      }]);
-    } finally {
-      setSearching(false);
-    }
-  };
+{/* CARD SUMMARY – PAPER STYLE */}
 
-  const stopSearch = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      setSearching(false);
-      setCurrentStatus('Search stopped');
-    }
-  };
+{showStatus && (
+  <div style={styles.paper}>
+    <div style={styles.summaryLine}>
+      <strong>Card Types Present:</strong>{" "}
+      <span style={{ color: "green", fontWeight: "normal" }}>
+        {[...presentCardTypes].sort((a, b) => a - b).join(", ") || "None"}
+      </span>
+    </div>
 
-  const clearResults = () => {
-    setResults([]);
-    setCurrentStatus('');
-  };
+    <div style={styles.summaryLine}>
+      <strong>Card Types Not Present:</strong>{" "}
+      <span style={{ color: "red", fontWeight: "normal" }}>
+        {notPresent.join(", ")}
+      </span>
+    </div>
+
+    <div style={styles.summaryLine}>
+      <strong>IPs not reachable:</strong>{" "}
+      <span style={{ color: "red", fontWeight: "normal" }}>
+        {noModulesIPs
+          .map(ip => `CX ${ip.split(".").pop()}`)
+          .join(", ")}
+      </span>
+    </div>
+  </div>
+)}
+
+
+
+
+
+      {/* MODULES */}
+  {view === "modules" && (
+  isFiltering ? (
+    /* ---------- SINGLE TABLE WHEN FILTERING ---------- */
+    <Paper
+      title="Modules (Filtered Results)"
+      headers={["IP", "Slot", "Card Type", "Model", "Serial", "FW", "Loader"]}
+      rows={filteredModules.map(m => [
+        m.ip,
+        m.slot,
+        m.cardType,
+        m.model,
+        m.serial,
+        m.firmware,
+        m.loader
+      ])}
+    />
+  ) : (
+    /* ---------- MULTIPLE TABLES WHEN NO FILTER ---------- */
+    Object.keys(modulesByIP)
+      .sort()
+      .map(ip => (
+        <Paper
+          key={ip}
+          title={`${ip}`}
+          headers={["Slot", "Card Type", "Model", "Serial", "FW", "Loader"]}
+          rows={modulesByIP[ip].map(m => [
+            m.slot,
+            m.cardType,
+            m.model,
+            m.serial,
+            m.firmware,
+            m.loader
+          ])}
+        />
+      )))
+)}
+
+{view === "mfn" && (
+  isFiltering ? (
+    <Paper
+      title="MFN Modules (Filtered Results)"
+      headers={[
+        "IP",
+        "Node Position",
+        "Model Number",
+        "Serial Number",
+        "Firmware Version",
+        "Loader Version"
+      ]}
+      rows={filteredMFN.map(m => [
+        m.ip,
+        m.slot,
+        m.model,
+        m.serial,
+        m.firmware,
+        m.loader
+      ])}
+    />
+  ) : (
+    Object.keys(mfnByIP)
+      .sort()
+      .map(ip => (
+        <Paper
+          key={ip}
+          title={`MFN Modules — ${ip}`}
+          headers={[
+            "Node Position",
+            "Model Number",
+            "Serial Number",
+            "Firmware Version",
+            "Loader Version"
+          ]}
+          rows={mfnByIP[ip].map(m => [
+            m.slot,
+            m.model,
+            m.serial,
+            m.firmware,
+            m.loader
+          ])}
+        />
+      ))
+  )
+)}
+
+
+      {/* I2C */}
+  {view === "i2c" && (
+  isFiltering ? (
+    <Paper
+      title="I2C Modules (Filtered Results)"
+      headers={[
+        "IP",
+        "Slot",
+        "Module Type",
+        "Model",
+        "Serial",
+        "Firmware",
+        "Total Signals"
+      ]}
+      rows={filteredI2C.map(m => [
+        m.ip,
+        m.slot,
+        m.moduleType,
+        m.model,
+        m.serial,
+        m.firmware,
+        m.totalSignals
+      ])}
+    />
+  ) : (
+    Object.keys(i2cByIP)
+      .sort()
+      .map(ip => (
+        <Paper
+          key={ip}
+          title={`I2C Modules — ${ip}`}
+          headers={[
+            "Slot",
+            "Module Type",
+            "Model",
+            "Serial",
+            "Firmware",
+            "Total Signals"
+          ]}
+          rows={i2cByIP[ip].map(m => [
+            m.slot,
+            m.moduleType,
+            m.model,
+            m.serial,
+            m.firmware,
+            m.totalSignals
+          ])}
+        />
+      )))
+)}
+
+
+
+
+
+
+      {/* NETWORK */}
+      {view === "network" && (
+        <Paper
+          title="Network Information"
+          headers={[
+            "Index No",
+            "IP Address",
+            "IPv4",
+            "Subnet",
+            "Gateway",
+            "IPv6",
+            "Prefix",
+            "Next Hop"
+          ]}
+          rows={filteredNetwork.map((n, i) => [
+            i + 1,
+            n.ip,
+            n.ipv4,
+            n.subnet,
+            n.gateway,
+            n.ipv6,
+            n.prefix,
+            n.nextHop
+          ])}
+        />
+      )}
+
+     
+
+
+    </>
+  );
+}
+
+/* ---------- PAPER (DIAGNOSTICS STYLE) ---------- */
+function Paper({ title, headers, rows, red }) {
+  if (!rows.length) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-6 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
-          SNMP Search Tool
-        </h1>
+    <div style={styles.paper}>
+      <div style={styles.title}>{title}</div>
 
-        {/* IP Address Upload */}
-        <div className="bg-slate-800 rounded-lg p-4 mb-6 border border-slate-700">
-          <label className="block text-sm font-medium mb-2 text-slate-300">
-            Upload IP Addresses CSV File
-          </label>
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
-            className="block w-full text-sm text-slate-300
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-lg file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-600 file:text-white
-              hover:file:bg-blue-700 file:cursor-pointer
-              cursor-pointer"
-          />
-          {ipAddresses.length > 0 && (
-            <p className="mt-2 text-sm text-green-400">
-              ✓ {ipAddresses.length} IP addresses loaded
-            </p>
-          )}
-        </div>
-
-        {/* Tabs */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-          <div className="flex border-b border-slate-700">
-            {tabs.map((tab, index) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(index)}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition ${
-                  activeTab === index
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-              >
-                {tab.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            {tabs.map((tab, index) => (
-              <div key={tab.key} className={activeTab === index ? 'block' : 'hidden'}>
-                <div className="flex gap-3 mb-4">
-                  <input
-                    type="text"
-                    value={searchInputs[tab.key]}
-                    onChange={(e) => handleInputChange(tab.key, e.target.value)}
-                    placeholder={tab.placeholder}
-                    className="flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg 
-                      text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 
-                      focus:border-transparent outline-none"
-                    disabled={searching}
-                  />
-                  <button
-                    onClick={searchSNMP}
-                    disabled={searching}
-                    className="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold
-                      disabled:bg-slate-600 disabled:cursor-not-allowed transition"
-                  >
-                    Search
-                  </button>
-                  <button
-                    onClick={stopSearch}
-                    disabled={!searching}
-                    className="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold
-                      disabled:bg-slate-600 disabled:cursor-not-allowed transition"
-                  >
-                    Stop
-                  </button>
-                  <button
-                    onClick={clearResults}
-                    className="px-6 py-2 bg-slate-600 hover:bg-slate-500 rounded-lg font-semibold transition"
-                  >
-                    Clear
-                  </button>
-                </div>
-
-                {currentStatus && (
-                  <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
-                    <p className="text-blue-300 text-sm">{currentStatus}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Results */}
-        <div className="mt-6 bg-slate-800 rounded-lg border border-slate-700 p-4">
-          <h2 className="text-xl font-semibold mb-4 text-slate-200">Search Results</h2>
-          <div className="bg-slate-900 rounded-lg p-4 h-96 overflow-y-auto font-mono text-sm">
-            {results.length === 0 ? (
-              <p className="text-slate-500 text-center py-8">No results yet. Start a search to see results here.</p>
-            ) : (
-              results.map((result, index) => (
-                <div key={index} className="mb-2">
-                  {result.isDone ? (
-                    <p className="text-green-400 font-bold">{result.message}</p>
-                  ) : (
-                    <p className="text-slate-300">
-                      <span className="text-cyan-400">{result.ip?.padEnd(15)}</span>
-                      <span className="text-yellow-400 ml-2">{result.field}=</span>
-                      <span className="text-green-400">{result.value?.padEnd(30)}</span>
-                      {result.slotNo && (
-                        <span className="text-blue-400 ml-4">slotno={result.slotNo}</span>
-                      )}
-                      {result.cardType && (
-                        <span className="text-purple-400 ml-4">{cardTypeMap[result.cardType] || result.cardType}</span>
-                      )}
-                      <span className="text-slate-500 ml-4 text-xs">[{result.timestamp}]</span>
-                    </p>
-                  )}
-                </div>
-              ))
-            )}
-            <div ref={resultsEndRef} />
-          </div>
-        </div>
-
-        {/* Card Type Reference */}
-        <div className="mt-6 bg-slate-800 rounded-lg border border-slate-700 p-4">
-          <details className="cursor-pointer">
-            <summary className="text-lg font-semibold text-slate-200 mb-2">Card Type Reference</summary>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-4 text-sm">
-              {Object.entries(cardTypeMap).map(([key, value]) => (
-                <div key={key} className="bg-slate-700 p-2 rounded">
-                  <span className="text-blue-400">{key}:</span>
-                  <span className="text-slate-300 ml-2">{value}</span>
-                </div>
-              ))}
-            </div>
-          </details>
-        </div>
+      <div style={styles.headers}>
+        {headers.map(h => (
+          <span key={h} style={styles.headerItem}>
+            <strong>{h}</strong>
+          </span>
+        ))}
       </div>
+
+      {rows.map((r, i) => (
+  <div key={i} style={styles.row}>
+    {r.map((c, j) => (
+      <span
+        key={j}
+        style={{
+          ...styles.item,
+          color: columnColors?.[j] || "#000"
+        }}
+      >
+        {c || "-"}
+      </span>
+    ))}
+  </div>
+))}
+
     </div>
   );
 }
+
+/* ---------- STYLES ---------- */
+// const styles = {
+//   wrSNMPSearchTooler: { display: "flex", gap: "6px", marginBottom: "6px" },
+//   paper: {
+//     border: "2px solid #ddd",
+//     padding: "2px",
+//     borderRadius: "8px",
+//     margin: "6px",
+//     backgroundColor: "#f9f9f9"
+//   },
+//   title: { fontSize: "12px", fontWeight: "bold", marginBottom: "4px" },
+//   headers: {
+//     display: "flex",
+//     borderBottom: "1px solid #ddd",
+//     background: "#fff"
+//   },
+//   headerItem: { flex: 1, fontSize: "12px", padding: "2px" },
+//   row: {
+//     display: "flex",
+//     padding: "2px",
+//     boxShadow: "0 1px 2px rgba(0,0,0,0.08)"
+//   },
+//   item: { flex: 1, fontSize: "12px", whiteSpace: "nowrap" }
+// };
+const columnColors = [
+  "#1565c0", // Index No – Blue
+  "#2e7d32", // Slot – Green
+  "#6a1b9a", // Module Type – Purple
+  "#ef6c00", // Model – Orange
+  "#c62828", // Serial – Red
+  "#455a64", // Firmware – Grey
+  "#0277bd"  // Total Signals – Teal
+];
+const styles = {
+  paper: {
+    border: "2px solid #ddd",
+    borderRadius: "8px",
+    margin: "2px auto",
+    width: "70%",
+    padding: '8px 4px' // ✅ ONLY THIS
+  },
+  title: { fontSize: "12px", fontWeight: "bold", marginBottom: "4px" },
+  headers: { display: "flex", borderBottom: "1px solid #ddd" },
+  headerItem: { flex: 1, fontSize: "12px", padding: "2px" },
+  row: { display: "flex", padding: "2px" },
+  item: { flex: 1, fontSize: "12px" },
+  controlRow: {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "2px",
+  alignItems: "center"
+},
+
+input: {
+  fontSize: "12px",
+  padding: "4px 6px",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  width: "130px"
+},
+
+scanBtn: {
+  fontSize: "12px",
+  padding: "4px 12px",
+  borderRadius: "4px",
+  border: "1px solid #0074e8",
+  background: "#0074e8",
+  color: "#fff",
+  cursor: "pointer"
+},
+
+summaryLine: {
+  fontSize: "12px",
+  margin: "2px 0",
+  textAlign: "left"
+},
+
+viewButtons: {
+  display: "flex",
+  gap: "6px"
+},
+
+viewBtn: {
+  fontSize: "12px",
+  padding: "4px 10px",
+  borderRadius: "4px",
+  border: "1px solid #ccc",
+  background: "#f5f5f5",
+  cursor: "pointer"
+},
+
+activeBtn: {
+  fontSize: "12px",
+  padding: "4px 10px",
+  borderRadius: "4px",
+  border: "1px solid #0074e8",
+  background: "#0074e8",
+  color: "#fff",
+  cursor: "pointer"
+}
+
+};

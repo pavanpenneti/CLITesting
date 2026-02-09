@@ -43,6 +43,9 @@ break;
 case "/dataRetrivel":
 title = "@Pavan | Data Retrivel";
 break;
+case "/SNMP":
+title = "@Pavan | SNMP Search Tool";
+break;
 default:
 title = "@Pavan QA Tool";
 }
