@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 /* ---------- HELPERS ---------- */
 const exact = (v, f) => !f || String(v) === String(f);
 const startsWith = (v, f) =>
@@ -156,6 +157,48 @@ const i2cByIP = filteredI2C.reduce((acc, m) => {
   acc[m.ip].push(m);
   return acc;
 }, {});
+const exportToExcel = () => {
+  const wb = XLSX.utils.book_new();
+
+  // Modules Sheet
+  if (modules.length > 0) {
+    const wsModules = XLSX.utils.json_to_sheet(modules);
+    XLSX.utils.book_append_sheet(wb, wsModules, "Modules");
+  }
+
+  // MFN Sheet
+  if (mfn.length > 0) {
+    const wsMFN = XLSX.utils.json_to_sheet(mfn);
+    XLSX.utils.book_append_sheet(wb, wsMFN, "MFN");
+  }
+
+  // I2C Sheet
+  if (i2c.length > 0) {
+    const wsI2C = XLSX.utils.json_to_sheet(i2c);
+    XLSX.utils.book_append_sheet(wb, wsI2C, "I2C");
+  }
+
+  // Network Sheet
+  if (networkRows.length > 0) {
+    // Map networkRows for Excel-friendly format
+    const networkData = networkRows.map(n => ({
+      IP: n.ip,
+      IPv4: n.ipv4,
+      IPv4All: Array.isArray(n.ipv4all) ? n.ipv4all.map(ip => ip.value).join(", ") : n.ipv4all,
+      Subnet: n.subnet,
+      Gateway: n.gateway,
+      IPv6: n.ipv6,
+      Prefix: n.prefix,
+      NextHop: n.nextHop
+    }));
+    const wsNetwork = XLSX.utils.json_to_sheet(networkData);
+    XLSX.utils.book_append_sheet(wb, wsNetwork, "Network");
+  }
+
+  // Save file
+  XLSX.writeFile(wb, "SNMP_Scan.xlsx");
+};
+
  return (
     <>
       {/* CONTROLS */}
@@ -236,7 +279,13 @@ const i2cByIP = filteredI2C.reduce((acc, m) => {
     >
       Network
     </button>
-  
+  <button
+  style={{ ...styles.scanBtn, background: "#28a745", borderColor: "#28a745" }}
+  onClick={exportToExcel}
+>
+  Export to Excel
+</button>
+
  
 
   </div>
@@ -373,7 +422,9 @@ const i2cByIP = filteredI2C.reduce((acc, m) => {
         "Model",
         "Serial",
         "Firmware",
-        "Total Signals"
+        "Total Signals",
+        "Model Feature",
+        "Config Ver"
       ]}
       rows={filteredI2C.map(m => [
         m.ip,
@@ -382,7 +433,9 @@ const i2cByIP = filteredI2C.reduce((acc, m) => {
         m.model,
         m.serial,
         m.firmware,
-        m.totalSignals
+        m.totalSignals,
+        m.modelFeature,
+        m.configVer
       ])}
     />
   ) : (
@@ -398,7 +451,9 @@ const i2cByIP = filteredI2C.reduce((acc, m) => {
             "Model",
             "Serial",
             "Firmware",
-            "Total Signals"
+            "Total Signals",
+        "Model Feature",
+        "Config Ver"
           ]}
           rows={i2cByIP[ip].map(m => [
             m.slot,
@@ -406,7 +461,9 @@ const i2cByIP = filteredI2C.reduce((acc, m) => {
             m.model,
             m.serial,
             m.firmware,
-            m.totalSignals
+            m.totalSignals,
+            m.modelFeature,
+        m.configVer
           ])}
         />
       )))

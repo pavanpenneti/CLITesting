@@ -34,6 +34,8 @@ const OIDS = {
   i2cFirmware: "1.3.6.1.4.1.9204.1.18.1.6.1.1.15",
   i2cModuleType: "1.3.6.1.4.1.9204.1.18.1.6.1.1.14",
   i2cTotalSignals: "1.3.6.1.4.1.9204.1.18.1.6.1.1.8",
+  i2cModelFeature: "1.3.6.1.4.1.9204.1.18.1.6.1.1.4",
+  i2cConfigVer: "1.3.6.1.4.1.9204.1.18.1.6.1.1.6",
 
   // MFN MODULES
   mfnSlot: "1.3.6.1.4.1.9204.1.18.1.4.1.1",
@@ -128,7 +130,7 @@ async function scanIP(ipAddr) {
   const [
     slot, cardType, model, serial, mfgDate, firmware, loader,
     ipv4Tbl, subnetTbl, gatewayTbl, ipv6Tbl, prefixTbl, nextHopTbl,
-    i2cSlot, i2cModel, i2cSerial, i2cFirmware, i2cModuleType, i2cTotalSignals,
+    i2cSlot, i2cModel, i2cSerial, i2cFirmware, i2cModuleType, i2cTotalSignals,i2cModelFeature, i2cConfigVer,
     mfnSlot, mfnModel, mfnSerial, mfnFirmware, mfnLoader
   ] = await Promise.all([
     safeWalk(OIDS.slot),
@@ -152,6 +154,8 @@ async function scanIP(ipAddr) {
     safeWalk(OIDS.i2cFirmware),
     safeWalk(OIDS.i2cModuleType),
     safeWalk(OIDS.i2cTotalSignals),
+        safeWalk(OIDS.i2cModelFeature),
+    safeWalk(OIDS.i2cConfigVer),
 
      safeWalk(OIDS.mfnSlot),
   safeWalk(OIDS.mfnModel),
@@ -181,7 +185,9 @@ async function scanIP(ipAddr) {
     serial: i2cSerial[index]?.toString() || "",
     firmware: i2cFirmware[index]?.toString() || "",
     moduleType: i2cModuleType[index] === 1 ? "Active" : i2cModuleType[index] === 0 ? "Regular" : "",
-    totalSignals: i2cTotalSignals[index]?.toString() || ""
+    totalSignals: i2cTotalSignals[index]?.toString() || "",
+    modelFeature: i2cModelFeature[index]?.toString() || "",
+    configVer: i2cConfigVer[index]?.toString() || "",
   })).sort((a, b) => a.slot - b.slot);
 
   /* ---------- MFN MODULES ---------- */
