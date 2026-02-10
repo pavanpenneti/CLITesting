@@ -12,7 +12,8 @@ import {
   faSignal,
   faFileAlt,
   faTable,
-  faFileExcel
+  faFileExcel,
+  faServer
 } from '@fortawesome/free-solid-svg-icons';
 
 function LogData() {
@@ -1037,6 +1038,11 @@ const splitprocessTextTx = () => {
               title="Frequency Table"
             />
           </Link>
+        </button>
+        <button style={{ ...iconStyle, marginLeft: '2px' }} title='SNMP'>
+          <Link to="/SNMP" style={{...iconStyle, textDecoration: "none" }}>SNMP</Link>
+           
+            
         </button>
         {/* <button>
           <Link to="/ApiData">API Data</Link>
