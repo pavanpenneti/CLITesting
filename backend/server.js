@@ -44,35 +44,7 @@ const OIDS = {
 };
 
 /* ===================== SNMP WALK ===================== */
-// function snmpWalk(target, oid) {
-//   return new Promise((resolve, reject) => {
-//     const session = snmp.createSession(target, community, {
-//       version: snmp.Version2c,
-//       timeout: 3000,
-//       retries: 2
-//     });
-
-//     const data = {};
-
-//     session.subtree(
-//       oid,
-//       20,
-//       varbinds => {
-//         varbinds.forEach(v => {
-//           if (!snmp.isVarbindError(v)) {
-//             const index = v.oid.substring(oid.length + 1); // full index after base OID
-//             data[index] = v.value;
-//           }
-//         });
-//       },
-//       err => {
-//         session.close();
-//         err ? reject(err) : resolve(data);
-//       }
-//     );
-//   });
-// }
-function snmpWalk(target, oid) {
+async function snmpWalk(target, oid) {
   // Helper to create a session and walk for a specific SNMP version
   function walkWithVersion(version) {
     return new Promise((resolve, reject) => {
@@ -103,17 +75,27 @@ function snmpWalk(target, oid) {
     });
   }
 
-  // Try SNMP v2c first, fallback to v1 if it fails
-  return walkWithVersion(snmp.Version2c).catch(async err => {
-    console.warn(`v2c failed for ${target} OID ${oid}, trying v1...`);
-    try {
-      return await walkWithVersion(snmp.Version1);
-    } catch (err2) {
-      console.error(`Both v2c and v1 failed for ${target} OID ${oid}`);
-      return {}; // return empty object instead of throwing
-    }
-  });
+  const result = {};
+
+  // First try v2c
+  try {
+    const v2cData = await walkWithVersion(snmp.Version2c);
+    Object.assign(result, v2cData); // add all v2c results
+  } catch (err) {
+    console.warn(`v2c failed for ${target} OID ${oid}`);
+  }
+
+  // Then try v1 and merge
+  try {
+    const v1Data = await walkWithVersion(snmp.Version1);
+    Object.assign(result, v1Data); // merge v1 results
+  } catch (err2) {
+    console.warn(`v1 failed for ${target} OID ${oid}`);
+  }
+
+  return result; // combined data from v2c + v1
 }
+
 
 /* ===================== HELPERS ===================== */
 function firstValue(obj) {
@@ -198,7 +180,7 @@ async function scanIP(ipAddr) {
     model: i2cModel[index]?.toString() || "",
     serial: i2cSerial[index]?.toString() || "",
     firmware: i2cFirmware[index]?.toString() || "",
-    moduleType: i2cModuleType[index] === 1 ? "Active" : i2cModuleType[index] === 0 ? "Passive" : "",
+    moduleType: i2cModuleType[index] === 1 ? "Active" : i2cModuleType[index] === 0 ? "Regular" : "",
     totalSignals: i2cTotalSignals[index]?.toString() || ""
   })).sort((a, b) => a.slot - b.slot);
 
@@ -218,10 +200,13 @@ const mfnModules = [...mfnIndices].map(index => ({
   loader: mfnLoader[index]?.toString() || ""
 })).sort((a, b) => a.slot - b.slot);
 
-
+const ipv4List = Object.entries(ipv4Tbl)
+  .filter(([index, value]) => value)          // remove empty values
+  .map(([index, value]) => ({ index, value: value.toString() }));
   /* ---------- NETWORK ---------- */
   const network = {
     ipv4: firstValue(ipv4Tbl).toString() || "",
+    ipv4all: ipv4List,
     subnet: firstValue(subnetTbl).toString() || "",
     gateway: firstValue(gatewayTbl).toString() || "",
     ipv6: bufferToIPv6(firstValue(ipv6Tbl)),

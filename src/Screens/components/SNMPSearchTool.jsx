@@ -70,6 +70,7 @@ const hasAnyNetworkValue = n =>
       networkRows.push({
         ip: d.ip,
         ipv4: d.network.ipv4 || "-",
+        ipv4all: d.network.ipv4all || [], 
         subnet: d.network.subnet || "-",
         gateway: d.network.gateway || "-",
         ipv6: d.network.ipv6 || "-",
@@ -417,31 +418,45 @@ const i2cByIP = filteredI2C.reduce((acc, m) => {
 
 
       {/* NETWORK */}
-      {view === "network" && (
-        <Paper
-          title="Network Information"
-          headers={[
-            "Index No",
-            "IP Address",
-            "IPv4",
-            "Subnet",
-            "Gateway",
-            "IPv6",
-            "Prefix",
-            "Next Hop"
-          ]}
-          rows={filteredNetwork.map((n, i) => [
-            i + 1,
-            n.ip,
-            n.ipv4,
-            n.subnet,
-            n.gateway,
-            n.ipv6,
-            n.prefix,
-            n.nextHop
-          ])}
-        />
-      )}
+    {view === "network" && (
+  <Paper
+    title="Network Information"
+    headers={[
+      "Index No",
+    
+     
+      "Equivalent CXs",
+       "IPv4",
+      "Subnet",
+      "Gateway",
+      "IPv6",
+      "Prefix",
+      "Next Hop"
+    ]}
+    rows={filteredNetwork.map((n, i) => [
+      i + 1,                      // single IPv4 (if you still keep it)
+Array.isArray(n.ipv4all) &&
+    n.ipv4all.map((ip, idx) => (
+      <span key={idx}>
+        <span style={{ color: "blue" }}>CX{ip.value.split(".").pop()}</span>
+        <span style={{ color: "red" }}>__</span>
+        <span style={{ color: "blue" }}>{ip.index}</span>
+        {idx < n.ipv4all.length - 1 && ", "}
+      </span>
+    )),
+
+
+      n.ipv4,      // ✅ all IPv4s
+      n.subnet,
+      n.gateway,
+      n.ipv6,
+      n.prefix,
+      n.nextHop,
+      
+    ])}
+  />
+)}
+
 
      
 
