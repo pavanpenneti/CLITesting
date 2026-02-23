@@ -27,6 +27,7 @@ const DiagnosticsTool = () => {
     'Split 3 Values',
     'Split 6 Values',
     'Split 7 Values',
+    'Binary Split',
     'Split Hex',
     'Reverse',
     'Reverse & Merge',
@@ -303,9 +304,28 @@ const time_date = (data) => {
     if (data1[0] === '06') {
       return row.extraTextBoxes[6];
     }
+    if (data1[0] === '07') {
+      return row.extraTextBoxes[7];
+    }
     return data1[0];
   }
+function binarySplit(splitdata, row) {
+   const hexValue = splitdata.split(' ')[0];
 
+  // Step 2: convert HEX → 8-bit binary
+  const binary = parseInt(hexValue, 16)
+    .toString(2)
+    .padStart(8, '0');
+
+  // Step 3: map bits to textboxes (LSB → index 0)
+  const result = binary
+    .split('')
+    .reverse()
+    .map((bit, index) => (bit === '1' ? row.extraTextBoxes[index] : null))
+    .filter(Boolean)
+    .join(', ');
+
+  return result;}
   const splitHex = (data) => {
     const normalizedInput = data.match(/.{1,2}/g)?.join(' ') || ''; // Remove all spaces
     return normalizedInput;
@@ -809,6 +829,10 @@ const convertToInt2Reverse = (data) => {
         case 'Split 7 Values':
             methodName = 'convert7Values';
             processedData = convert7Values(slicedData, row); // Example for Merge: remove spaces
+            break;
+        case 'Binary Split':
+            methodName = 'binarySplit';
+            processedData = binarySplit(slicedData, row); // Example for Merge: remove spaces
             break;
         case 'Split Hex':
             methodName = 'splitHex';
