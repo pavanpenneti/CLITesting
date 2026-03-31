@@ -69,15 +69,17 @@ const FrequencyTable = () => {
                 <span
                   style={styles.cell}
                 >{`US/DS Freq ${freq.label} MHz`}</span>
-                <span style={styles.cell}>
-                  {parseInt(txUplink).toString()} Hz
-                </span>
-                <span style={styles.cell}>
-                  {parseInt(rx1Downlink).toString()} Hz
-                </span>
-                <span style={styles.cell}>
-                  {parseInt(rx2Downlink.toString())} Hz
-                </span>
+               <span style={styles.cell}>
+  {Math.round(txUplink)} Hz
+</span>
+
+<span style={styles.cell}>
+  {Math.round(rx1Downlink)} Hz
+</span>
+
+<span style={styles.cell}>
+  {Math.round(rx2Downlink)} Hz
+</span>
               </div>
               {(index + 1) % 6 === 0 && <div style={styles.emptyRow}></div>}
             </React.Fragment>
