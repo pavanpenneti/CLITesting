@@ -28,6 +28,7 @@ const DiagnosticsTool = () => {
     'Split 6 Values',
     'Split 7 Values',
     'Binary Split',
+    'Binary Split Detail',
     'Split Hex',
     'Reverse',
     'Reverse & Merge',
@@ -317,15 +318,50 @@ function binarySplit(splitdata, row) {
     .toString(2)
     .padStart(8, '0');
 
-  // Step 3: map bits to textboxes (LSB → index 0)
+  //Step 3: map bits to textboxes (LSB → index 0)
   const result = binary
     .split('')
     .reverse()
     .map((bit, index) => (bit === '1' ? row.extraTextBoxes[index] : null))
     .filter(Boolean)
     .join(', ');
+ 
 
-  return result;}
+  return result;
+}
+function binarySplitDetail(splitdata, row) {
+   const hexValue = splitdata.split(' ')[0];
+
+  // Step 2: convert HEX → 8-bit binary
+  const binary = parseInt(hexValue, 16)
+    .toString(2)
+    .padStart(8, '0');
+
+ 
+  const result = binary
+  .split('')
+  .reverse()
+  .map((bit, index) => {
+    const base = index * 3;
+
+    const idx = row.extraTextBoxes[base];
+    const zeroVal = row.extraTextBoxes[base + 1];
+    const oneVal = row.extraTextBoxes[base + 2];
+
+    // Skip if index textbox itself is empty
+    if (!idx) return null;
+
+    if (bit === '0' && zeroVal) return `${idx}: ${zeroVal}`;
+    if (bit === '1' && oneVal) return `${idx}: ${oneVal}`;
+
+    return null;
+  })
+  .filter(Boolean)
+  .join(', ');
+
+  return result;
+}
+
   const splitHex = (data) => {
     const normalizedInput = data.match(/.{1,2}/g)?.join(' ') || ''; // Remove all spaces
     return normalizedInput;
@@ -833,6 +869,10 @@ const convertToInt2Reverse = (data) => {
         case 'Binary Split':
             methodName = 'binarySplit';
             processedData = binarySplit(slicedData, row); // Example for Merge: remove spaces
+            break;
+        case 'Binary Split Detail':
+            methodName = 'binarySplitDetail';
+            processedData = binarySplitDetail(slicedData, row); // Example for Merge: remove spaces
             break;
         case 'Split Hex':
             methodName = 'splitHex';
