@@ -17,6 +17,8 @@ import RouteTitle from './Screens/components/RouteTitle';
 import setAPIData from './Screens/components/SetApiData';
 import DataRetrivel from './Screens/components/DataRetrivel';
 import SNMPSearchTool from './Screens/components/SNMPSearchTool';
+import JsonUploader from './Screens/components/JsonUploader';
+
 
 
 function App() {
@@ -42,6 +44,7 @@ function App() {
 				<Route exact path='/setAPIData' Component={setAPIData}></Route>
 				<Route exact path='/dataRetrivel' Component={DataRetrivel}></Route>
 				<Route exact path='/SNMP' Component={SNMPSearchTool}></Route>
+				<Route exact path='/JSONUpload' Component={JsonUploader}></Route>
 		</Routes>
 	</Router>
 	//  <OAModule/>
