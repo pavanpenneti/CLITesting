@@ -10,7 +10,9 @@ const paperStyles = {
     borderRadius: "8px",
     backgroundColor: "#f9f9f9",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+   
   },
+
   title: {
     fontFamily: "monospace",
     fontWeight: "bold",
@@ -37,19 +39,25 @@ const paperStyles = {
     padding: "6px",
     whiteSpace: "nowrap",
   },
+    headerRow: {
+  backgroundColor: "#ddd",
+  fontWeight: "bold",
+},
 };
 
 const JSONUpload = () => {
   const [tables, setTables] = useState([]);
   const [textareaInput, setTextareaInput] = useState("");
+  const [megaTable, setMegaTable] = useState(null);
+  const [moduleFilter, setModuleFilter] = useState("");
 
   /* ---------- Helpers ---------- */
   const extractNumber = (name) =>
     parseInt(name.match(/\d+/)?.[0] || "999999", 10);
+
   const extractType = (name) =>
     name.includes("Enhanced") ? 0 : name.includes("Standard") ? 1 : 2;
 
-  // Flatten while preserving key order
   const flattenObjectOrdered = (obj, parentKey = "", result = {}, order = []) => {
     for (const key of Object.keys(obj)) {
       const newKey = parentKey ? `${parentKey}.${key}` : key;
@@ -74,7 +82,9 @@ const JSONUpload = () => {
         `"${variable}"`,
         ...fileNames.map(
           (file) =>
-            `"${(tableData[variable][file] ?? "-").toString().replace(/"/g, '""')}"`
+            `"${(tableData[variable][file] ?? "-")
+              .toString()
+              .replace(/"/g, '""')}"`
         ),
       ];
       rows.push(row.join(","));
@@ -148,11 +158,11 @@ const JSONUpload = () => {
     });
   };
 
-  /* ---------- Copy Table ---------- */
+  /* ---------- Copy ---------- */
   const copyTableToClipboard = (table) => {
     const { fileNames, tableData, keyOrder } = table;
-
     let text = "";
+
     keyOrder.forEach((variable) => {
       const row = [
         variable,
@@ -165,86 +175,113 @@ const JSONUpload = () => {
     alert("Copied to clipboard!");
   };
 
-  /* ---------- Textarea → JSON ---------- */
-  /* ---------- Textarea → JSON (Preserve Order) ---------- */
-/* ---------- Textarea → JSON (All values as strings) ---------- */
-/* ---------- Textarea → JSON (Strings except true/false) ---------- */
-const handleTextareaSubmit = () => {
-  const lines = textareaInput.split("\n");
-  const result = {};
-  const keyOrder = []; // preserve order
+  /* ---------- TEXTAREA → MEGA TABLE ---------- */
+const parseTextareaToMegaTable = (text) => {
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
 
-  lines.forEach((line) => {
-    if (!line.trim()) return;
+  const tableData = {};
+  const columns = new Set();
+  const rowOrder = []; // includes headers
+  const headerAdded = new Set();
+
+  lines.forEach(line => {
     const parts = line.split("\t");
-    if (parts.length !== 2) return;
+    if (parts.length < 2) return;
 
-    const key = parts[0].trim();
-    let value = parts[1].trim();
+    const fullKey = parts[0].trim();
+    const value = parts.slice(1).join("\t").trim();
 
-    // Convert "true" or "false" to boolean
-    if (/^true$/i.test(value)) value = true;
-    else if (/^false$/i.test(value)) value = false;
-    // Otherwise, keep as string
+    const moduleMatch = fullKey.match(/(MB|BLE|FML|FMB|FMT)\d+_[^\.]+ MHz/);
+    if (!moduleMatch) return;
 
-    keyOrder.push({ key, value });
+    const moduleName = moduleMatch[0];
+    columns.add(moduleName);
+
+    let remainder = fullKey.split(moduleName)[1]?.replace(/^\./, "");
+    if (!remainder) return;
+
+    const pathParts = remainder.split(".");
+    if (pathParts.length < 2) return;
+
+    const heading = pathParts[pathParts.length - 2];
+    const variable = pathParts[pathParts.length - 1];
+
+    // Add heading row once
+    if (!headerAdded.has(heading)) {
+      headerAdded.add(heading);
+      rowOrder.push({ type: "header", label: heading });
+    }
+
+    // Add variable row
+    const rowKey = `${heading}::${variable}`;
+    if (!tableData[rowKey]) {
+      tableData[rowKey] = { __label: variable };
+      rowOrder.push({ type: "data", key: rowKey });
+    }
+
+    tableData[rowKey][moduleName] = value;
   });
 
-  // Function to set nested object by key path
-  const setNested = (obj, path, val) => {
-    const keys = path.split(".");
-    let temp = obj;
-    keys.forEach((k, i) => {
-      if (i === keys.length - 1) temp[k] = val;
-      else {
-        if (!temp[k]) temp[k] = {};
-        temp = temp[k];
-      }
-    });
-  };
-
-  const orderedObj = {};
-  keyOrder.forEach(({ key, value }) => setNested(orderedObj, key, value));
-
-  const jsonStr = JSON.stringify(orderedObj, null, 4);
-  const blob = new Blob([jsonStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "output.json";
-  a.click();
-  URL.revokeObjectURL(url);
+  setMegaTable({
+    fileNames: Array.from(columns),
+    tableData,
+    rowOrder,
+  });
 };
+const getFilteredColumns = () => {
+  if (!moduleFilter.trim()) return megaTable.fileNames;
+
+  const tokens = moduleFilter
+    .toUpperCase()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return megaTable.fileNames.filter(col =>
+    tokens.some(t => col.toUpperCase().startsWith(t))
+  );
+};
+
   /* ---------- UI ---------- */
   return (
     <div style={{ padding: "20px" }}>
       <h3>📂 Upload JSON Files</h3>
       <input type="file" accept=".json" multiple onChange={handleUpload} />
 
-      <h3 style={{ marginTop: "20px" }}>📝 Paste Tab-Separated Data</h3>
+      <h3 style={{ marginTop: "20px" }}>📝 Paste Module Values</h3>
       <textarea
-        rows={10}
-        cols={80}
+        rows={12}
+        cols={100}
         value={textareaInput}
         onChange={(e) => setTextareaInput(e.target.value)}
-        placeholder="Paste your tab-separated data here: key[TAB]value"
+        placeholder={`Example:
+MB180_85/102.Transponder=4.69
+MB180_204/258.Pilot 1=303
+BLE180_204/258.Pilot 1=303
+FML180_396/492.Frequency 1 Target=36.8`}
       />
+
       <br />
       <button
-        onClick={handleTextareaSubmit}
+        onClick={() => {
+  setTables([]);      // clear JSON tables
+  setMegaTable(null); // reset first
+  parseTextareaToMegaTable(textareaInput);
+}}
         style={{
           marginTop: "10px",
           padding: "6px 12px",
           fontSize: "14px",
           cursor: "pointer",
           borderRadius: "5px",
-          backgroundColor: "#17a2b8",
+          backgroundColor: "#6f42c1",
           color: "#fff",
           border: "none",
         }}
       >
-        ⬇️ Download JSON
+        📊 Generate Mega Table
       </button>
+
+      {/* ---------- JSON TABLES ---------- */}
 
       {tables.map((table, index) => (
         <div key={table.id} style={paperStyles.paper}>
@@ -290,20 +327,13 @@ const handleTextareaSubmit = () => {
                 <tr>
                   <th style={paperStyles.th}>Variable</th>
                   {table.fileNames.map((f) => (
-                    <th key={f} style={paperStyles.th}>
-                      {f}
-                    </th>
+                    <th key={f} style={paperStyles.th}>{f}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {table.keyOrder.map((v, i) => (
-                  <tr
-                    key={v}
-                    style={{
-                      backgroundColor: i % 2 === 0 ? "#f9f9f9" : "#fff",
-                    }}
-                  >
+                  <tr key={v} style={{ backgroundColor: i % 2 ? "#fff" : "#f9f9f9" }}>
                     <td style={paperStyles.td}>{v}</td>
                     {table.fileNames.map((f) => (
                       <td key={f} style={paperStyles.td}>
@@ -317,6 +347,96 @@ const handleTextareaSubmit = () => {
           </div>
         </div>
       ))}
+
+      {/* ---------- MEGA TABLE ---------- */}
+      {megaTable && (
+        <div style={paperStyles.paper}>
+          <div style={paperStyles.title}>📊 Mega Table (All Modules)</div>
+                <div style={{ marginBottom: "10px" }}>
+  <input
+    type="text"
+    placeholder="Search by Model Number(i.e MB, BLE ...)"
+    value={moduleFilter}
+    onChange={(e) => setModuleFilter(e.target.value)}
+    style={{
+      padding: "6px 10px",
+      fontSize: "13px",
+      width: "320px",
+      borderRadius: "6px",
+      border: "1px solid #ccc",
+      fontFamily: "monospace"
+    }}
+  />
+</div>
+          <div style={paperStyles.tableWrapper}>
+            <table style={paperStyles.table}>
+              <thead>
+                <tr>
+                  <th style={paperStyles.th}>Variable</th>
+                  {getFilteredColumns().map(col => (
+                    <th key={col} style={paperStyles.th}>{col}</th>
+                  ))}
+                </tr>
+              </thead>
+      <tbody>
+  {megaTable.rowOrder.map((row) => {
+    if (row.type === "header") {
+      return (
+      <tr key={`header-${row.label}`}>
+  <td
+   style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "green",
+  color: "white",
+}}
+  >
+    {row.label}
+  </td>
+
+  {getFilteredColumns().map(c => (
+    <td
+      key={c}
+      style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "green",
+  color: "white",
+}}
+    />
+  ))}
+</tr>
+      );
+    }
+
+    return (
+     <tr key={`data-${row.key}`}>
+        <td style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "white",
+  color: "blue",
+}}>
+          {megaTable.tableData[row.key].__label}
+        </td>
+        {getFilteredColumns().map(c => (
+          <td key={c}  style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "white",
+  color: "black",
+}}>
+            {megaTable.tableData[row.key][c] ?? "-"}
+          </td>
+        ))}
+      </tr>
+    );
+  })}
+</tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
