@@ -1044,6 +1044,11 @@ const splitprocessTextTx = () => {
            
             
         </button>
+        <button style={{ ...iconStyle, marginLeft: '2px' }} title='Create Profile Testing'>
+          <Link to="/JSONUpload" style={{...iconStyle, textDecoration: "none" }}>Profile</Link>
+           
+            
+        </button>
         {/* <button>
           <Link to="/ApiData">API Data</Link>
         </button>
