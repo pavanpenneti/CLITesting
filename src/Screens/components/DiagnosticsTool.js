@@ -73,18 +73,19 @@ const DiagnosticsTool = () => {
     const now = new Date();
     return now.toLocaleString(); // Formats as "MM/DD/YYYY, HH:MM:SS AM/PM"
   };
-  const handleAddRow = () => {
-    setRows([
-      ...rows,
-      {
-        varByte: '',
-        startByte: '',
-        endByte: '',
-        selectedOption: 'Conversion Type',
-        extraTextBoxes: [],
-      },
-    ]);
+ const handleAddRow = (index) => {
+  const newRow = {
+    varByte: '',
+    startByte: '',
+    endByte: '',
+    selectedOption: 'Conversion Type',
+    extraTextBoxes: [],
   };
+
+  const updatedRows = [...rows];
+  updatedRows.splice(index + 1, 0, newRow); // Insert below current row
+  setRows(updatedRows);
+};
 
   const handleRemoveRow = (index) => {
     if (rows.length > 1) {
@@ -1301,24 +1302,23 @@ const convertToInt2Reverse = (data) => {
               </button>
             )}
 
-            <button
-              onClick={handleAddRow}
-              style={{
-                padding: '5px 7px',
-                fontSize: '12px',
-                borderRadius: '5px',
-                backgroundColor: '#007BFF',
-                color: '#fff',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.3s',
-              }}
-              onMouseOver={(e) => (e.target.style.backgroundColor = '#0056b3')}
-              onMouseOut={(e) => (e.target.style.backgroundColor = '#007BFF')}
-            >
-              Add Row
-            </button>
-
+          <button
+  onClick={() => handleAddRow(index)}
+  style={{
+    padding: '5px 7px',
+    fontSize: '12px',
+    borderRadius: '5px',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s',
+  }}
+  onMouseOver={(e) => (e.target.style.backgroundColor = '#0056b3')}
+  onMouseOut={(e) => (e.target.style.backgroundColor = '#007BFF')}
+>
+  Add Row
+</button>
             {rows.length > 1 && (
               <button
                 onClick={() => handleRemoveRow(index)}
