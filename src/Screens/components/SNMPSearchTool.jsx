@@ -456,7 +456,7 @@ const exportToExcel = () => {
         "Config Ver"
           ]}
           rows={i2cByIP[ip].map(m => [
-            m.slot,
+            m.slot,  
             m.moduleType,
             m.model,
             m.serial,

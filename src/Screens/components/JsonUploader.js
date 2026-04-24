@@ -53,6 +53,7 @@ const JSONUpload = () => {
   const [splitTables, setSplitTables] = useState(null);
   const [viewMode, setViewMode] = useState("mega"); 
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [tableData, setTableData] = useState([]);
 // "mega" | "split"
 
 
@@ -412,6 +413,23 @@ const downloadTextareaAsJSON = () => {
     alert("Error converting textarea data to JSON!");
   }
 };
+const jsonToTable = (jsonText) => {
+  const data = JSON.parse(jsonText);
+
+  return data.map(item => ({
+    key: item.key,
+    value: item.value,
+  }));
+};
+const handleShowTable = () => {
+  try {
+    const rows = jsonToTable(textareaInput);
+    setTableData(rows);
+  } catch (e) {
+    alert("Invalid JSON input");
+  }
+};
+
   /* ---------- UI ---------- */
   return (
     <div style={{ padding: "20px" }}>
@@ -427,7 +445,7 @@ const downloadTextareaAsJSON = () => {
       cursor: "pointer",
       fontSize: "14px",
       display: "inline-block",
-      marginLeft:"40%"
+      marginLeft:"20%"
     }}
   >
     📂 Browse JSON Files
@@ -443,7 +461,7 @@ const downloadTextareaAsJSON = () => {
     />
   </label>
 
-  
+
   <button
     onClick={() => {
       setTables([]);
@@ -496,6 +514,22 @@ const downloadTextareaAsJSON = () => {
   >
     💾 Download JSON
   </button>
+  
+<button
+  onClick={handleShowTable}
+  style={{
+    padding: "6px 12px",
+    fontSize: "14px",
+    cursor: "pointer",
+    borderRadius: "5px",
+    backgroundColor: "#198754",
+    color: "#fff",
+    border: "none",
+    marginLeft: "10px",
+  }}
+>
+  🔁 JSON → Key Value
+</button>
 </div>
  
       
@@ -582,7 +616,53 @@ const downloadTextareaAsJSON = () => {
           </div>
         </div>
       ))}
+{tableData.length > 0 && (
+  <div style={paperStyles.paper}>
+  
 
+    <div style={paperStyles.tableWrapper}>
+      <table style={paperStyles.table}>
+        <thead>
+          <tr style={paperStyles.headerRow}>
+            <th style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "white",
+  color: "red",
+  width: "50%"
+}}>Key</th>
+            <th style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "white",
+  color: "red",
+  width: "50%"
+}}>Value</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {tableData.map((row, index) => (
+            <tr key={index}>
+              <td style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "white",
+  color: "blue",
+}}>{row.key}</td>
+              <td style={{
+  ...paperStyles.td,
+  ...paperStyles.headerRow,
+  backgroundColor: "white",
+  color: "green",
+}}>{row.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
       {/* ---------- MEGA TABLE ---------- */}
       {viewMode === "mega" && megaTable && (
         <div style={paperStyles.paper}>
@@ -769,6 +849,7 @@ const downloadTextareaAsJSON = () => {
             </tbody>
           </table>
         </div>
+
       </div>
     );
   })
