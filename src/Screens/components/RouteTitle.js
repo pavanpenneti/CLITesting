@@ -48,6 +48,9 @@ title = "@Pavan | SNMP Search Tool";
 case "/JSONUpload":
 title = "@Pavan | Create Profile Data";
 break;
+case "/saveData":
+title = "@Pavan | Save Data";
+break;
 default:
 title = "@Pavan QA Tool";
 }

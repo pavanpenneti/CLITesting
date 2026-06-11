@@ -18,6 +18,7 @@ import setAPIData from './Screens/components/SetApiData';
 import DataRetrivel from './Screens/components/DataRetrivel';
 import SNMPSearchTool from './Screens/components/SNMPSearchTool';
 import JsonUploader from './Screens/components/JsonUploader';
+import GeneratePhotos from './Screens/components/GeneratePhotos';
 
 
 
@@ -37,7 +38,7 @@ function App() {
 				<Route exact path='/SetDataFormatNewProtocol' Component={SetDataFormatNewProtocol}></Route>
 				
 				<Route exact path='/dailyReport' Component={DailyReport}></Route>
-				FrequencyTable
+				
 				<Route exact path='/diagnosticstool' Component={DiagnosticsTool}></Route>
 				<Route exact path='/logDataDetail' Component={LogDetail}></Route>
 				<Route exact path='/frequencyTable' Component={FrequencyTable}></Route>
@@ -45,6 +46,7 @@ function App() {
 				<Route exact path='/dataRetrivel' Component={DataRetrivel}></Route>
 				<Route exact path='/SNMP' Component={SNMPSearchTool}></Route>
 				<Route exact path='/JSONUpload' Component={JsonUploader}></Route>
+				<Route exact path='/saveData' Component={GeneratePhotos}></Route>
 		</Routes>
 	</Router>
 	//  <OAModule/>
