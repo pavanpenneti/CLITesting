@@ -65,83 +65,54 @@ function ContentRenderer({ content }) {
       </div>
     );
   }
-  // plain text
   return <pre style={ts.pre}>{content}</pre>;
 }
 
-// table styles
 const ts = {
-  table: {
-    borderCollapse: "collapse",
-    width: "100%",
-    fontSize: 13,
-    fontFamily: "Arial, sans-serif",
-  },
-  th: {
-    backgroundColor: "#1976d2",
-    color: "#fff",
-    padding: "8px 12px",
-    textAlign: "left",
-    fontWeight: 600,
-    border: "1px solid #1565c0",
-    whiteSpace: "nowrap",
-  },
-  td: {
-    padding: "7px 12px",
-    border: "1px solid #e0e0e0",
-    color: "#333",
-    whiteSpace: "nowrap",
-  },
+  table: { borderCollapse: "collapse", width: "100%", fontSize: 13, fontFamily: "Arial, sans-serif" },
+  th: { backgroundColor: "#1976d2", color: "#fff", padding: "8px 12px", textAlign: "left", fontWeight: 600, border: "1px solid #1565c0", whiteSpace: "nowrap" },
+  td: { padding: "7px 12px", border: "1px solid #e0e0e0", color: "#333", whiteSpace: "nowrap" },
   trEven: { backgroundColor: "#fff" },
   trOdd: { backgroundColor: "#f3f8ff" },
-  pre: {
-    margin: 0,
-    fontSize: 14,
-    fontFamily: "Arial, sans-serif",
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-    color: "#333",
-    backgroundColor: "#f5f5f5",
-    padding: 10,
-    borderRadius: 6,
-  },
-  hint: {
-    margin: "6px 0 0",
-    fontSize: 11,
-    color: "#aaa",
-  },
+  pre: { margin: 0, fontSize: 14, fontFamily: "Arial, sans-serif", whiteSpace: "pre-wrap", wordBreak: "break-word", color: "#333", backgroundColor: "#f5f5f5", padding: 10, borderRadius: 6 },
+  hint: { margin: "6px 0 0", fontSize: 11, color: "#aaa" },
 };
 
 export default function GeneratePhotos() {
-  // ── state ─────────────────────────────────────────────────────
+
+  // ── folder state ──────────────────────────────────────────────
   const [allFolders, setAllFolders] = useState([]);
   const [allFiles, setAllFiles] = useState([]);
   const [currentFolderId, setCurrentFolderId] = useState(null);
   const [breadcrumb, setBreadcrumb] = useState([]);
-
   const [newFolderName, setNewFolderName] = useState("");
   const [editFolderId, setEditFolderId] = useState(null);
   const [editFolderName, setEditFolderName] = useState("");
-  const [deleteFolderId, setDeleteFolderId] = useState(null);
 
+  // ── file state ────────────────────────────────────────────────
   const [tab, setTab] = useState("text");
   const [newFileName, setNewFileName] = useState("");
   const [newFileContent, setNewFileContent] = useState("");
-  const [pastePreview, setPastePreview] = useState(null); // parsed rows or null
-
+  const [pastePreview, setPastePreview] = useState(null);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadName, setUploadName] = useState("");
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
-
   const [editFileId, setEditFileId] = useState(null);
   const [editFileContent, setEditFileContent] = useState("");
-  const [deleteFileId, setDeleteFileId] = useState(null);
   const [openFileId, setOpenFileId] = useState(null);
+  const [editFileNameId, setEditFileNameId] = useState(null);
+  const [editFileNameValue, setEditFileNameValue] = useState("");
   const [lightbox, setLightbox] = useState(null);
   const fileInputRef = useRef();
-const [editFileNameId, setEditFileNameId] = useState(null);
-const [editFileNameValue, setEditFileNameValue] = useState("");
+
+  // ── auth / delete modal state ─────────────────────────────────
+  const [authModal, setAuthModal] = useState(false);
+  const [authUser, setAuthUser] = useState("");
+  const [authPass, setAuthPass] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [pendingDelete, setPendingDelete] = useState(null);
+
   // ── fetch folders ─────────────────────────────────────────────
   useEffect(() => {
     const q = query(collection(db, "folders"), orderBy("createdAt", "asc"));
@@ -160,7 +131,10 @@ const [editFileNameValue, setEditFileNameValue] = useState("");
 
   const childFolders = allFolders.filter((f) => (f.parentId ?? null) === currentFolderId);
   const currentFiles = allFiles.filter((f) => (f.folderId ?? null) === currentFolderId);
+  const photos = currentFiles.filter((f) => f.type === "upload" && isImage(f.name));
+  const otherFiles = currentFiles.filter((f) => !(f.type === "upload" && isImage(f.name)));
 
+  // ── navigation ────────────────────────────────────────────────
   const openFolder = (folder) => {
     setBreadcrumb((prev) => [...prev, { id: folder.id, name: folder.name }]);
     setCurrentFolderId(folder.id);
@@ -174,14 +148,52 @@ const [editFileNameValue, setEditFileNameValue] = useState("");
   };
 
   const resetUI = () => {
-    setEditFileId(null); setDeleteFileId(null); setOpenFileId(null);
-    setEditFolderId(null); setDeleteFolderId(null);
+    setEditFileId(null); setOpenFileId(null);
+    setEditFolderId(null); setEditFileNameId(null);
   };
 
-  // ── handle textarea paste / change ───────────────────────────
-  const handleContentChange = (val) => {
-    setNewFileContent(val);
-    setPastePreview(parseTabData(val));
+  // ── auth modal helpers ────────────────────────────────────────
+  const requestDelete = (type, payload) => {
+    setPendingDelete({ type, payload });
+    setAuthModal(true);
+    setAuthUser("");
+    setAuthPass("");
+    setAuthError("");
+  };
+
+  const confirmDelete = async () => {
+    if (authUser.trim() !== "pavan" || authPass !== "pavancycle") {
+      setAuthError("❌ Incorrect username or password!");
+      return;
+    }
+    setAuthModal(false);
+    setAuthError("");
+    if (!pendingDelete) return;
+    const { type, payload } = pendingDelete;
+    setPendingDelete(null);
+
+    if (type === "folder") {
+      await deleteFolderRecursive(payload.id);
+      if (currentFolderId === payload.id) {
+        const parent = breadcrumb[breadcrumb.length - 2];
+        setBreadcrumb((prev) => prev.slice(0, -1));
+        setCurrentFolderId(parent?.id ?? null);
+      }
+    }
+
+    if (type === "file" || type === "photo") {
+      if (payload.storagePath) {
+        try { await deleteObject(ref(storage, payload.storagePath)); } catch (_) {}
+      }
+      await deleteDoc(doc(db, "files", payload.id));
+      if (openFileId === payload.id) setOpenFileId(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setAuthModal(false);
+    setAuthError("");
+    setPendingDelete(null);
   };
 
   // ── folder CRUD ───────────────────────────────────────────────
@@ -212,25 +224,17 @@ const [editFileNameValue, setEditFileNameValue] = useState("");
     await deleteDoc(doc(db, "folders", folderId));
   };
 
-  const handleDeleteFolder = async (id) => {
-    await deleteFolderRecursive(id);
-    if (currentFolderId === id) {
-      const parent = breadcrumb[breadcrumb.length - 2];
-      setBreadcrumb((prev) => prev.slice(0, -1));
-      setCurrentFolderId(parent?.id ?? null);
-    }
-    setDeleteFolderId(null);
+  // ── file name rename ──────────────────────────────────────────
+  const saveFileName = async (id) => {
+    if (!editFileNameValue.trim()) return alert("File name cannot be empty!");
+    await updateDoc(doc(db, "files", id), {
+      name: editFileNameValue.trim(),
+      updatedAt: serverTimestamp(),
+    });
+    setEditFileNameId(null);
+    setEditFileNameValue("");
   };
-const saveFileName = async (id) => {
-  if (!editFileNameValue.trim()) return alert("File name cannot be empty!");
-  const isTable = !!parseTabData(allFiles.find(f => f.id === id)?.content || "");
-  await updateDoc(doc(db, "files", id), {
-    name: editFileNameValue.trim(),
-    updatedAt: serverTimestamp(),
-  });
-  setEditFileNameId(null);
-  setEditFileNameValue("");
-};
+
   // ── text file CRUD ────────────────────────────────────────────
   const createTextFile = async () => {
     if (!newFileName.trim()) return alert("Enter a file name!");
@@ -239,12 +243,23 @@ const saveFileName = async (id) => {
     await addDoc(collection(db, "files"), {
       name: newFileName.trim(),
       content: newFileContent.trim(),
-      contentType: isTable ? "table" : "text", // save detected type
+      contentType: isTable ? "table" : "text",
       type: "text",
       folderId: currentFolderId,
       createdAt: serverTimestamp(),
     });
     setNewFileName(""); setNewFileContent(""); setPastePreview(null);
+  };
+
+  const saveEditFile = async (id) => {
+    if (!editFileContent.trim()) return;
+    const isTable = !!parseTabData(editFileContent);
+    await updateDoc(doc(db, "files", id), {
+      content: editFileContent.trim(),
+      contentType: isTable ? "table" : "text",
+      updatedAt: serverTimestamp(),
+    });
+    setEditFileId(null);
   };
 
   // ── upload ────────────────────────────────────────────────────
@@ -271,33 +286,18 @@ const saveFileName = async (id) => {
     );
   };
 
-  const deleteFile = async (file) => {
-    if (file.storagePath) {
-      try { await deleteObject(ref(storage, file.storagePath)); } catch (_) {}
-    }
-    await deleteDoc(doc(db, "files", file.id));
-    setDeleteFileId(null);
-    if (openFileId === file.id) setOpenFileId(null);
+  const handleContentChange = (val) => {
+    setNewFileContent(val);
+    setPastePreview(parseTabData(val));
   };
 
-  const saveEditFile = async (id) => {
-    if (!editFileContent.trim()) return;
-    const isTable = !!parseTabData(editFileContent);
-    await updateDoc(doc(db, "files", id), {
-      content: editFileContent.trim(),
-      contentType: isTable ? "table" : "text",
-      updatedAt: serverTimestamp(),
-    });
-    setEditFileId(null);
-  };
-
-  const photos = currentFiles.filter((f) => f.type === "upload" && isImage(f.name));
-  const otherFiles = currentFiles.filter((f) => !(f.type === "upload" && isImage(f.name)));
-
+  // ─────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────
   return (
     <div style={s.page}>
 
-      {/* Lightbox */}
+      {/* ── Lightbox ── */}
       {lightbox && (
         <div style={s.overlay} onClick={() => setLightbox(null)}>
           <div style={s.lightbox} onClick={(e) => e.stopPropagation()}>
@@ -313,26 +313,84 @@ const saveFileName = async (id) => {
         </div>
       )}
 
-      
+      {/* ── Auth / Delete Modal ── */}
+      {authModal && (
+        <div style={s.overlay} onClick={cancelDelete}>
+          <div style={s.authModal} onClick={(e) => e.stopPropagation()}>
+            <div style={s.authIconWrap}>
+              <span style={s.authIcon}>🔐</span>
+            </div>
+            <h3 style={s.authTitle}>Confirm Delete</h3>
+            <p style={s.authSubtitle}>
+              Enter your credentials to permanently delete{" "}
+              <strong>
+                {pendingDelete?.type === "folder"
+                  ? `"${pendingDelete.payload.name}" folder`
+                  : `"${pendingDelete?.payload?.name}"`}
+              </strong>.
+            </p>
 
-      {/* Breadcrumb */}
+            <label style={s.authLabel}>Username</label>
+            <input
+              style={s.authInput}
+              placeholder="Enter username"
+              value={authUser}
+              autoFocus
+              onChange={(e) => { setAuthUser(e.target.value); setAuthError(""); }}
+              onKeyDown={(e) => e.key === "Enter" && confirmDelete()}
+            />
+
+            <label style={s.authLabel}>Password</label>
+            <input
+              style={s.authInput}
+              type="password"
+              placeholder="Enter password"
+              value={authPass}
+              onChange={(e) => { setAuthPass(e.target.value); setAuthError(""); }}
+              onKeyDown={(e) => e.key === "Enter" && confirmDelete()}
+            />
+
+            {authError && (
+              <div style={s.authError}>
+                <span>❌</span> {authError.replace("❌ ", "")}
+              </div>
+            )}
+
+            <div style={s.authBtns}>
+              <button style={s.authCancelBtn} onClick={cancelDelete}>✖ Cancel</button>
+              <button style={s.authConfirmBtn} onClick={confirmDelete}>🗑️ Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Breadcrumb ── */}
       <div style={s.breadcrumb}>
         <span style={s.crumb} onClick={() => goToBreadcrumb(-1)}>🏠 Home</span>
         {breadcrumb.map((crumb, i) => (
           <span key={crumb.id} style={s.crumbWrap}>
             <span style={s.sep}> / </span>
-            <span style={{ ...s.crumb, ...(i === breadcrumb.length - 1 ? s.crumbActive : {}) }} onClick={() => goToBreadcrumb(i)}>{crumb.name}</span>
+            <span
+              style={{ ...s.crumb, ...(i === breadcrumb.length - 1 ? s.crumbActive : {}) }}
+              onClick={() => goToBreadcrumb(i)}
+            >{crumb.name}</span>
           </span>
         ))}
       </div>
 
-      {/* New folder */}
+      {/* ── New Folder Row ── */}
       <div style={s.newFolderRow}>
-        <input style={s.input} placeholder="New folder name…" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && createFolder()} />
+        <input
+          style={s.input}
+          placeholder="New folder name…"
+          value={newFolderName}
+          onChange={(e) => setNewFolderName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && createFolder()}
+        />
         <button style={s.addBtn} onClick={createFolder}>📁 New Folder</button>
       </div>
 
-      {/* Folders grid */}
+      {/* ── Folders Grid ── */}
       {childFolders.length > 0 && (
         <>
           <p style={s.sectionLabel}>FOLDERS</p>
@@ -342,13 +400,20 @@ const saveFileName = async (id) => {
                 <div style={s.folderCardTop}>
                   <span style={{ fontSize: 36, cursor: "pointer" }} onClick={() => openFolder(folder)}>📁</span>
                   <div style={s.rowBtns}>
-                    <button style={s.iconBtn} onClick={() => { setEditFolderId(folder.id); setEditFolderName(folder.name); setDeleteFolderId(null); }}>✏️</button>
-                    <button style={s.iconBtn} onClick={() => { setDeleteFolderId(folder.id); setEditFolderId(null); }}>🗑️</button>
+                    <button style={s.iconBtn} title="Rename folder" onClick={() => { setEditFolderId(folder.id); setEditFolderName(folder.name); }}>✏️</button>
+                    <button style={s.iconBtn} title="Delete folder" onClick={() => { setEditFolderId(null); requestDelete("folder", folder); }}>🗑️</button>
                   </div>
                 </div>
+
                 {editFolderId === folder.id ? (
                   <div style={{ padding: "0 8px 8px" }}>
-                    <input style={s.inlineInput} value={editFolderName} autoFocus onChange={(e) => setEditFolderName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveFolder(folder.id); if (e.key === "Escape") setEditFolderId(null); }} />
+                    <input
+                      style={s.inlineInput}
+                      value={editFolderName}
+                      autoFocus
+                      onChange={(e) => setEditFolderName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveFolder(folder.id); if (e.key === "Escape") setEditFolderId(null); }}
+                    />
                     <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                       <button style={s.yesBtn} onClick={() => saveFolder(folder.id)}>💾</button>
                       <button style={s.noBtn} onClick={() => setEditFolderId(null)}>✖</button>
@@ -357,58 +422,47 @@ const saveFileName = async (id) => {
                 ) : (
                   <p style={s.folderCardName} onClick={() => openFolder(folder)}>{folder.name}</p>
                 )}
+
                 <p style={s.folderMeta}>
-                  {allFolders.filter((f) => f.parentId === folder.id).length} folder(s) · {allFiles.filter((f) => f.folderId === folder.id).length} file(s)
+                  {allFolders.filter((f) => f.parentId === folder.id).length} folder(s) ·{" "}
+                  {allFiles.filter((f) => f.folderId === folder.id).length} file(s)
                 </p>
-                {deleteFolderId === folder.id && (
-                  <div style={{ ...s.confirmBox, margin: "0 8px 8px" }}>
-                    <span style={s.confirmText}>Delete "{folder.name}" and all contents?</span>
-                    <div style={s.confirmBtns}>
-                      <button style={s.yesBtn} onClick={() => handleDeleteFolder(folder.id)}>✅ Yes</button>
-                      <button style={s.noBtn} onClick={() => setDeleteFolderId(null)}>❌ No</button>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         </>
       )}
 
-      {/* Add file tabs */}
+      {/* ── Add File Tabs ── */}
       {/* <p style={s.sectionLabel}>ADD FILE</p>
       <div style={s.tabs}>
         <button style={{ ...s.tab, ...(tab === "text" ? s.tabActive : {}) }} onClick={() => setTab("text")}>📝 Text / Table</button>
         <button style={{ ...s.tab, ...(tab === "upload" ? s.tabActive : {}) }} onClick={() => setTab("upload")}>📎 Upload File / Photo</button>
       </div> */}
 
+      {/* Text file form */}
       {tab === "text" && (
         <div style={s.formBox}>
           <input style={s.input} placeholder="File name…" value={newFileName} onChange={(e) => setNewFileName(e.target.value)} />
-
-        
+         
           <textarea
-            style={{ ...ts.pre, ...s.textarea, marginTop: 0 }}
-            placeholder={"Enter data here..."}
+            style={s.textarea}
+            placeholder={"Enter data here…"}
             value={newFileContent}
             onChange={(e) => handleContentChange(e.target.value)}
             rows={6}
           />
-
-          {/* Live preview */}
           {newFileContent.trim() && (
             <div style={s.previewBox}>
-              <p style={s.previewLabel}>
-                {pastePreview ? "📊 Table Preview" : "📄 Text Preview"}
-              </p>
+              <p style={s.previewLabel}>{pastePreview ? "📊 Table Preview" : "📄 Text Preview"}</p>
               <ContentRenderer content={newFileContent} />
             </div>
           )}
-
           <button style={s.primaryBtn} onClick={createTextFile}>＋ Save File</button>
         </div>
       )}
 
+      {/* Upload form */}
       {tab === "upload" && (
         <div style={s.formBox}>
           <input style={s.input} placeholder="Display name (optional)…" value={uploadName} onChange={(e) => setUploadName(e.target.value)} />
@@ -431,7 +485,7 @@ const saveFileName = async (id) => {
         </div>
       )}
 
-      {/* Photos */}
+      {/* ── Photos Grid ── */}
       {photos.length > 0 && (
         <>
           <p style={s.sectionLabel}>🖼️ PHOTOS</p>
@@ -443,97 +497,62 @@ const saveFileName = async (id) => {
                 <div style={s.photoActions}>
                   <button style={s.smBtn} onClick={() => setLightbox(item)}>🔍</button>
                   <a href={item.url} target="_blank" rel="noreferrer" style={s.smBtnA}>⬇️</a>
-                  <button style={s.smBtnRed} onClick={() => setDeleteFileId(item.id)}>🗑️</button>
+                  <button style={s.smBtnRed} onClick={() => requestDelete("photo", item)}>🗑️</button>
                 </div>
-                {deleteFileId === item.id && (
-                  <div style={s.confirmBox}>
-                    <span style={s.confirmText}>Delete?</span>
-                    <div style={s.confirmBtns}>
-                      <button style={s.yesBtn} onClick={() => deleteFile(item)}>✅ Yes</button>
-                      <button style={s.noBtn} onClick={() => setDeleteFileId(null)}>❌ No</button>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         </>
       )}
 
-      {/* Files */}
+      {/* ── Files List ── */}
       {otherFiles.length > 0 && (
         <>
           <p style={s.sectionLabel}>📄 FILES</p>
           {otherFiles.map((file) => (
             <div key={file.id} style={s.fileCard}>
-            <div style={s.fileHeader}>
-  {/* ── File name: view or inline edit ── */}
-  {editFileNameId === file.id ? (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, marginRight: 8 }}>
-      <input
-        style={s.inlineInput}
-        value={editFileNameValue}
-        autoFocus
-        onChange={(e) => setEditFileNameValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") saveFileName(file.id);
-          if (e.key === "Escape") setEditFileNameId(null);
-        }}
-      />
-      <button style={s.yesBtn} onClick={() => saveFileName(file.id)}>💾</button>
-      <button style={s.noBtn} onClick={() => setEditFileNameId(null)}>✖</button>
-    </div>
-  ) : (
-    <span style={s.fileNameBtn} onClick={() => setOpenFileId(openFileId === file.id ? null : file.id)}>
-      {file.contentType === "table" ? "📊" : fileIcon(file.name)} {file.name}
-      {file.size ? <span style={s.fileSize}> · {formatBytes(file.size)}</span> : null}
-      {file.contentType === "table" && <span style={s.tableTag}>TABLE</span>}
-      {file.updatedAt && <span style={s.editedTag}>edited</span>}
-    </span>
-  )}
 
-  {/* ── Action buttons ── */}
-  {editFileNameId !== file.id && (
-    <div style={s.rowBtns}>
-      {/* Rename file name button */}
-      <button
-        style={s.iconBtn}
-        title="Rename file"
-        onClick={() => {
-          setEditFileNameId(file.id);
-          setEditFileNameValue(file.name);
-          setEditFileId(null);
-          setDeleteFileId(null);
-        }}
-      >🏷️</button>
+              {/* File header */}
+              <div style={s.fileHeader}>
+                {editFileNameId === file.id ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, marginRight: 8 }}>
+                    <input
+                      style={s.inlineInput}
+                      value={editFileNameValue}
+                      autoFocus
+                      onChange={(e) => setEditFileNameValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveFileName(file.id);
+                        if (e.key === "Escape") setEditFileNameId(null);
+                      }}
+                    />
+                    <button style={s.yesBtn} onClick={() => saveFileName(file.id)}>💾</button>
+                    <button style={s.noBtn} onClick={() => setEditFileNameId(null)}>✖</button>
+                  </div>
+                ) : (
+                  <span style={s.fileNameBtn} onClick={() => setOpenFileId(openFileId === file.id ? null : file.id)}>
+                    {file.contentType === "table" ? "📊" : fileIcon(file.name)} {file.name}
+                    {file.size ? <span style={s.fileSize}> · {formatBytes(file.size)}</span> : null}
+                    {file.contentType === "table" && <span style={s.tableTag}>TABLE</span>}
+                    {file.updatedAt && <span style={s.editedTag}>edited</span>}
+                  </span>
+                )}
 
-      {/* Edit content button (text files only) */}
-      {file.type === "text" && (
-        <button
-          style={s.iconBtn}
-          title="Edit content"
-          onClick={() => {
-            setEditFileId(file.id);
-            setEditFileContent(file.content);
-            setOpenFileId(file.id);
-            setDeleteFileId(null);
-            setEditFileNameId(null);
-          }}
-        >✏️</button>
-      )}
+                {editFileNameId !== file.id && (
+                  <div style={s.rowBtns}>
+                    <button style={s.iconBtn} title="Rename" onClick={() => { setEditFileNameId(file.id); setEditFileNameValue(file.name); setEditFileId(null); }}>🏷️</button>
+                    {file.type === "text" && (
+                      <button style={s.iconBtn} title="Edit content" onClick={() => { setEditFileId(file.id); setEditFileContent(file.content); setOpenFileId(file.id); setEditFileNameId(null); }}>✏️</button>
+                    )}
+                    {file.type === "upload" && (
+                      <a href={file.url} target="_blank" rel="noreferrer" style={s.iconBtnA}>⬇️</a>
+                    )}
+                    <button style={s.iconBtn} title="Delete" onClick={() => { setEditFileNameId(null); requestDelete("file", file); }}>🗑️</button>
+                  </div>
+                )}
+              </div>
 
-      {/* Download (upload files only) */}
-      {file.type === "upload" && (
-        <a href={file.url} target="_blank" rel="noreferrer" style={s.iconBtnA}>⬇️</a>
-      )}
-
-      {/* Delete */}
-      <button style={s.iconBtn} onClick={() => { setDeleteFileId(file.id); setEditFileNameId(null); }}>🗑️</button>
-    </div>
-  )}
-</div>
-
-              {/* View / Edit */}
+              {/* File content view / edit */}
               {openFileId === file.id && file.type === "text" && (
                 <div style={{ marginTop: 10 }}>
                   {editFileId === file.id ? (
@@ -546,12 +565,9 @@ const saveFileName = async (id) => {
                         autoFocus
                         onChange={(e) => setEditFileContent(e.target.value)}
                       />
-                      {/* edit preview */}
                       {editFileContent.trim() && (
                         <div style={{ ...s.previewBox, marginTop: 8 }}>
-                          <p style={s.previewLabel}>
-                            {parseTabData(editFileContent) ? "📊 Table Preview" : "📄 Text Preview"}
-                          </p>
+                          <p style={s.previewLabel}>{parseTabData(editFileContent) ? "📊 Table Preview" : "📄 Text Preview"}</p>
                           <ContentRenderer content={editFileContent} />
                         </div>
                       )}
@@ -570,20 +586,12 @@ const saveFileName = async (id) => {
                 <video src={file.url} controls style={{ width: "100%", marginTop: 10, borderRadius: 8 }} />
               )}
 
-              {deleteFileId === file.id && (
-                <div style={s.confirmBox}>
-                  <span style={s.confirmText}>Delete "{file.name}"?</span>
-                  <div style={s.confirmBtns}>
-                    <button style={s.yesBtn} onClick={() => deleteFile(file)}>✅ Yes</button>
-                    <button style={s.noBtn} onClick={() => setDeleteFileId(null)}>❌ No</button>
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </>
       )}
 
+      {/* ── Empty State ── */}
       {childFolders.length === 0 && currentFiles.length === 0 && (
         <div style={s.emptyState}>
           <p style={{ fontSize: 48, margin: 0 }}>📭</p>
@@ -597,7 +605,6 @@ const saveFileName = async (id) => {
 // ── styles ────────────────────────────────────────────────────────
 const s = {
   page: { maxWidth: 1400, margin: "30px auto", padding: 20, fontFamily: "Arial, sans-serif" },
-  heading: { fontSize: 24, marginBottom: 16, color: "#333" },
   breadcrumb: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2, marginBottom: 16, backgroundColor: "#f5f5f5", padding: "10px 14px", borderRadius: 8 },
   crumb: { color: "#1976d2", cursor: "pointer", fontSize: 14, fontWeight: 500 },
   crumbWrap: { display: "flex", alignItems: "center" },
@@ -611,7 +618,7 @@ const s = {
   folderCardName: { fontSize: 13, fontWeight: 600, color: "#333", padding: "2px 10px 4px", margin: 0, cursor: "pointer", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   folderMeta: { fontSize: 11, color: "#aaa", padding: "0 10px 10px", margin: 0 },
   input: { flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #ccc", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box" },
-  inlineInput: { width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #90caf9", fontSize: 13, boxSizing: "border-box" },
+  inlineInput: { flex: 1, padding: "6px 8px", borderRadius: 6, border: "1px solid #90caf9", fontSize: 13, boxSizing: "border-box", outline: "none" },
   addBtn: { padding: "8px 16px", backgroundColor: "#ff6d00", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 14, whiteSpace: "nowrap" },
   rowBtns: { display: "flex", gap: 4, flexShrink: 0 },
   iconBtn: { background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: "2px 4px", borderRadius: 4 },
@@ -623,8 +630,8 @@ const s = {
   textarea: { width: "100%", padding: 10, fontSize: 14, borderRadius: 8, border: "1px solid #ccc", resize: "vertical", boxSizing: "border-box", fontFamily: "monospace" },
   primaryBtn: { marginTop: 4, padding: "8px 20px", backgroundColor: "#ff6d00", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 14, alignSelf: "flex-start" },
   btnDisabled: { backgroundColor: "#ccc", cursor: "not-allowed" },
-  dropZone: { marginTop: 10, border: "2px dashed #ccc", borderRadius: 10, padding: "24px 16px", textAlign: "center", cursor: "pointer", backgroundColor: "#fff" },
-  progressWrap: { position: "relative", height: 22, backgroundColor: "#eee", borderRadius: 10, marginTop: 10, overflow: "hidden" },
+  dropZone: { marginTop: 4, border: "2px dashed #ccc", borderRadius: 10, padding: "24px 16px", textAlign: "center", cursor: "pointer", backgroundColor: "#fff" },
+  progressWrap: { position: "relative", height: 22, backgroundColor: "#eee", borderRadius: 10, overflow: "hidden" },
   progressBar: { height: "100%", backgroundColor: "#ff6d00", borderRadius: 10, transition: "width 0.3s" },
   progressText: { position: "absolute", top: 2, left: "50%", transform: "translateX(-50%)", fontSize: 12, fontWeight: 700, color: "#333" },
   pasteHint: { fontSize: 12, color: "#888", backgroundColor: "#e3f2fd", padding: "6px 10px", borderRadius: 6, border: "1px solid #bbdefb" },
@@ -645,25 +652,26 @@ const s = {
   tableTag: { fontSize: 10, color: "#1976d2", fontWeight: 700, backgroundColor: "#e3f2fd", padding: "1px 6px", borderRadius: 10 },
   editedTag: { fontSize: 10, color: "#ff6d00", fontWeight: 600, backgroundColor: "#fff3e0", padding: "1px 6px", borderRadius: 10 },
   emptyState: { textAlign: "center", padding: "60px 20px", color: "#aaa" },
-  confirmBox: { backgroundColor: "#fff3e0", border: "1px solid #ffb74d", borderRadius: 8, padding: "10px 14px", marginTop: 6 },
-  confirmText: { fontSize: 13, color: "#e65100", display: "block", marginBottom: 8 },
-  confirmBtns: { display: "flex", gap: 8 },
   yesBtn: { padding: "5px 14px", backgroundColor: "#43a047", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 13 },
   noBtn: { padding: "5px 14px", backgroundColor: "#e53935", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 13 },
-  overlay: { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" },
+  overlay: { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" },
   lightbox: { position: "relative", backgroundColor: "#fff", borderRadius: 12, padding: 16, maxWidth: "90vw", maxHeight: "90vh", overflow: "auto", textAlign: "center" },
   lbClose: { position: "absolute", top: 10, right: 12, background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#555" },
   lbImg: { maxWidth: "80vw", maxHeight: "75vh", borderRadius: 8, display: "block", margin: "0 auto" },
   lbName: { marginTop: 10, fontSize: 13, color: "#666" },
   lbFile: { padding: 40, textAlign: "center" },
-  inlineInput: {
-  flex: 1,
-  padding: "6px 8px",
-  borderRadius: 6,
-  border: "1px solid #90caf9",
-  fontSize: 13,
-  boxSizing: "border-box",
-  outline: "none",
-},
   dlBtn: { display: "inline-block", marginTop: 12, padding: "8px 20px", backgroundColor: "#1976d2", color: "#fff", borderRadius: 8, textDecoration: "none", fontSize: 14 },
+
+  // ── auth modal ──────────────────────────────────────────────
+  authModal: { backgroundColor: "#fff", borderRadius: 14, padding: 28, width: 380, maxWidth: "90vw", boxShadow: "0 8px 40px rgba(0,0,0,0.3)", display: "flex", flexDirection: "column", gap: 12 },
+  authIconWrap: { textAlign: "center" },
+  authIcon: { fontSize: 40 },
+  authTitle: { margin: 0, fontSize: 20, fontWeight: 700, color: "#333", textAlign: "center" },
+  authSubtitle: { margin: 0, fontSize: 13, color: "#888", textAlign: "center", lineHeight: 1.5 },
+  authLabel: { fontSize: 13, fontWeight: 600, color: "#555", marginBottom: -4 },
+  authInput: { padding: "10px 12px", borderRadius: 8, border: "1px solid #ccc", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box" },
+  authError: { fontSize: 13, color: "#c62828", backgroundColor: "#ffebee", padding: "8px 12px", borderRadius: 8, border: "1px solid #ffcdd2", display: "flex", alignItems: "center", gap: 6 },
+  authBtns: { display: "flex", gap: 10, marginTop: 4 },
+  authCancelBtn: { flex: 1, padding: "10px 0", backgroundColor: "#f5f5f5", color: "#555", border: "1px solid #ddd", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 500 },
+  authConfirmBtn: { flex: 1, padding: "10px 0", backgroundColor: "#e53935", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: 600 },
 };

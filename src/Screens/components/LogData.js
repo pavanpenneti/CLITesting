@@ -1049,10 +1049,10 @@ const splitprocessTextTx = () => {
            
             
         </button>
-        {/* <button style={{ ...iconStyle, marginLeft: '2px' }} title='Create Profile Testing'>
+        <button style={{ ...iconStyle, marginLeft: '2px' }} title='Create Profile Testing'>
           <Link to="/saveData" style={{...iconStyle, textDecoration: "none" }}>Save Data</Link>
                        
-        </button> */}
+        </button>
         {/* <button>
           <Link to="/ApiData">API Data</Link>
         </button>
