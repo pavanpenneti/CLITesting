@@ -11,7 +11,7 @@ const isVideo = (n = "") => /\.(mp4|webm|ogg|mov)$/i.test(n);
 const isJson  = (n = "") => /\.json$/i.test(n);
 const isTxt   = (n = "") => /\.txt$/i.test(n);
 
-const ALLOWED_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|json|txt|crt|key|dfu|dnl\.dfu|mnt|py)$/i;
+const ALLOWED_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|json|txt|crt|key|dfu|dnl\.dfu|mnt|py|pdf|docx?|xlsx?|xls|mp4|webm|mov|zip|rar|7z)$/i;
 const MAX_BYTES = 900_000;
 
 const formatBytes = (b) => {
@@ -564,7 +564,7 @@ export default function GeneratePhotos() {
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.json,.txt,.crt,.key,.dfu,.dnl.dfu,.mnt,.py"
+            accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.json,.txt,.crt,.key,.dfu,.dnl.dfu,.mnt,.py,.pdf,.doc,.docx,.xls,.xlsx,.mp4,.webm,.mov,.zip,.rar,.7z"
             style={{ display: "none" }}
             onChange={(e) => handleFilesSelected(e.target.files)}
           />
@@ -684,7 +684,9 @@ export default function GeneratePhotos() {
                   </div>
                 )}
               </div>
-
+                {openFileId === file.id && file.type === "upload" && /\.pdf$/i.test(file.name) && (
+  <iframe src={file.url} style={{ width: "100%", height: 500, marginTop: 10, borderRadius: 8, border: "1px solid #eee" }} title={file.name} />
+)}
               {openFileId === file.id && file.type === "text" && (
                 <div style={{ marginTop: 10 }}>
                   {editFileId === file.id ? (
@@ -712,6 +714,12 @@ export default function GeneratePhotos() {
               {openFileId === file.id && file.type === "upload" && isVideo(file.name) && (
                 <video src={file.url} controls style={{ width: "100%", marginTop: 10, borderRadius: 8 }} />
               )}
+              {openFileId === file.id && file.type === "upload" && /\.(docx?|xlsx?|zip|rar|7z)$/i.test(file.name) && (
+  <div style={{ marginTop: 10, padding: 16, backgroundColor: "#f5f5f5", borderRadius: 8, textAlign: "center" }}>
+    <p style={{ margin: "0 0 10px", color: "#555" }}>Preview not available for this file type.</p>
+    <button style={s.primaryBtn} onClick={() => downloadFile(file.url, file.name)}>⬇️ Download {file.name}</button>
+  </div>
+)}
             </div>
           ))}
         </>
