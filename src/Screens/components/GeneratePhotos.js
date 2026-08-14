@@ -10,8 +10,9 @@ const isImage = (n = "") => /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(n);
 const isVideo = (n = "") => /\.(mp4|webm|ogg|mov)$/i.test(n);
 const isJson  = (n = "") => /\.json$/i.test(n);
 const isTxt   = (n = "") => /\.txt$/i.test(n);
+const isHtml = (n = "") => /\.(html|htm)$/i.test(n);
 
-const ALLOWED_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|json|txt|crt|key|dfu|dnl\.dfu|mnt|py|pdf|docx?|xlsx?|xls|mp4|webm|mov|zip|rar|7z)$/i;
+const ALLOWED_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|json|txt|crt|key|dfu|dnl\.dfu|mnt|py|pdf|docx?|xlsx?|xls|mp4|webm|mov|zip|rar|7z|html?|htm)$/i;
 const MAX_BYTES = 900_000;
 
 const formatBytes = (b) => {
@@ -26,6 +27,7 @@ const fileIcon = (n = "") => {
   if (isVideo(n)) return "🎬";
   if (isJson(n))  return "📋";
   if (isTxt(n))   return "📝";
+  if (isHtml(n))  return "🌐";
    if (/\.py$/i.test(n))          return "🐍";
   if (/\.(crt|key)$/i.test(n))   return "🔐";
   if (/\.(dfu|dnl\.dfu)$/i.test(n)) return "⚙️";
@@ -52,7 +54,7 @@ const tryPrettyJson = (str = "") => {
 // ── validate a single File object ────────────────────────────────
 const validateFile = (file) => {
   if (!ALLOWED_EXTENSIONS.test(file.name))
-    return `"${file.name}" is not allowed. Only images, JSON, and TXT.`;
+    return `"${file.name}" is not allowed`;
   if (file.size > MAX_BYTES)
     return `"${file.name}" is too large (${formatBytes(file.size)}). Max 900 KB.`;
   return null;
@@ -330,28 +332,51 @@ export default function GeneratePhotos() {
   };
   const saveEditFile = async (id) => {
     if (!editFileContent.trim()) return;
+    const existing = allFiles.find((f) => f.id === id);
     const isTable = !!parseTabData(editFileContent);
+    // preserve the "html" contentType on edit so the file keeps rendering
+    // in the iframe preview instead of falling back to plain text
+    const contentType = existing?.contentType === "html" ? "html" : (isTable ? "table" : "text");
     await updateDoc(doc(db, "files", id), {
-      content: editFileContent.trim(), contentType: isTable ? "table" : "text",
+      content: editFileContent.trim(), contentType,
       updatedAt: serverTimestamp(),
     });
     setEditFileId(null);
   };
 
   // ── multi-file queue management ───────────────────────────────
-  const handleFilesSelected = (fileList) => {
-    const files = Array.from(fileList);
-    const errors = [];
-    const valid = [];
-    files.forEach((f) => {
-      const err = validateFile(f);
-      if (err) errors.push(err);
-      else valid.push({ file: f, name: f.name, status: "pending", error: null, id: `${f.name}-${Date.now()}-${Math.random()}` });
+  const handleFilesSelected = async (fileList) => {
+
+  const files = Array.from(fileList);
+
+  const errors = [];
+  const valid = [];
+
+  for (const f of files) {
+
+    const err = validateFile(f);
+
+    if (err) {
+      errors.push(err);
+      continue;
+    }
+
+    valid.push({
+      file: f,
+      name: f.name,
+      status: "pending",
+      error: null,
+      id: `${f.name}-${Date.now()}-${Math.random()}`,
     });
-    setQueueErrors(errors);
-    setQueue((prev) => [...prev, ...valid]);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  }
+
+  setQueueErrors(errors);
+  setQueue((prev) => [...prev, ...valid]);
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};
 
   const removeFromQueue = (id) => setQueue((prev) => prev.filter((q) => q.id !== id));
 
@@ -369,11 +394,19 @@ export default function GeneratePhotos() {
       // mark uploading
       setQueue((prev) => prev.map((q) => q.id === item.id ? { ...q, status: "uploading" } : q));
       try {
-        const isTextType = isJson(item.file.name) || isTxt(item.file.name)
-  || /\.(crt|key|dfu|mnt|py)$/i.test(item.file.name);
+        const isTextType =
+  isJson(item.file.name) ||
+  isTxt(item.file.name) ||
+  isHtml(item.file.name) ||
+  /\.(crt|key|dfu|mnt|py)$/i.test(item.file.name);
         const data = await readFile(item.file, isTextType ? "text" : "dataURL");
+        const contentType = isJson(item.file.name)
+          ? "json"
+          : isHtml(item.file.name)
+          ? "html"
+          : "text";
         const fileData = isTextType
-          ? { content: data, contentType: isJson(item.file.name) ? "json" : "text", type: "text", url: null }
+          ? { content: data, contentType, type: "text", url: null }
           : { url: data, content: null, contentType: "image", type: "upload" };
 
         await addDoc(collection(db, "files"), {
@@ -544,7 +577,7 @@ export default function GeneratePhotos() {
       {tab === "upload" && (
         <div style={s.formBox}>
           <div style={s.uploadNotice}>
-            <strong>Allowed:</strong> Images (JPG, PNG, GIF, WEBP, SVG, BMP), JSON, TXT &nbsp;·&nbsp;
+            <strong>Allowed:</strong> Images, JSON, TXT, HTML, PDF, Word/Excel, ZIP, video and more &nbsp;·&nbsp;
             <strong>Max per file:</strong> 900 KB &nbsp;·&nbsp;
             <strong>Multiple files supported</strong>
           </div>
@@ -558,13 +591,13 @@ export default function GeneratePhotos() {
           >
             <p style={{ margin: 0, fontSize: 32 }}>📎</p>
             <p style={{ margin: "6px 0 0", color: "#555", fontWeight: 600 }}>Click to choose files or drag & drop here</p>
-            <p style={{ margin: "4px 0 0", color: "#bbb", fontSize: 12 }}>Images · JSON · TXT — up to 900 KB each</p>
+            <p style={{ margin: "4px 0 0", color: "#bbb", fontSize: 12 }}>Images · JSON · TXT · HTML — up to 900 KB each</p>
           </div>
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.json,.txt,.crt,.key,.dfu,.dnl.dfu,.mnt,.py,.pdf,.doc,.docx,.xls,.xlsx,.mp4,.webm,.mov,.zip,.rar,.7z"
+            accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.json,.txt,.crt,.key,.dfu,.dnl.dfu,.mnt,.py,.pdf,.doc,.docx,.xls,.xlsx,.mp4,.webm,.mov,.zip,.rar,.7z,.html,.htm"
             style={{ display: "none" }}
             onChange={(e) => handleFilesSelected(e.target.files)}
           />
@@ -657,15 +690,15 @@ export default function GeneratePhotos() {
                   </div>
                 ) : (
                   <span style={s.fileNameBtn} onClick={() => setOpenFileId(openFileId === file.id ? null : file.id)}>
-                    {file.contentType === "table" ? "📊" : file.contentType === "json" ? "📋" : fileIcon(file.name)}{" "}
+                    {file.contentType === "table" ? "📊" : file.contentType === "json" ? "📋" : file.contentType === "html" ? "🌐" : fileIcon(file.name)}{" "}
                     {file.name}
                     {file.size ? <span style={s.fileSize}> · {formatBytes(file.size)}</span> : null}
                     {file.contentType === "table" && <span style={s.tableTag}>TABLE</span>}
                     {file.contentType === "json"  && <span style={{ ...s.tableTag, color: "#e65100", backgroundColor: "#fff3e0" }}>JSON</span>}
+                    {file.contentType === "html"  && <span style={{ ...s.tableTag, color: "#00695c", backgroundColor: "#e0f2f1" }}>HTML</span>}
                     {file.updatedAt && <span style={s.editedTag}>edited</span>}
                   </span>
                 )}
-
                 {editFileNameId !== file.id && (
                   <div style={s.rowBtns}>
                     <button style={s.iconBtn} title="Rename" onClick={() => { setEditFileNameId(file.id); setEditFileNameValue(file.name); setEditFileId(null); }}>🏷️</button>
@@ -674,7 +707,14 @@ export default function GeneratePhotos() {
                         <CopyBtn text={getCopyText(file)} />
                         <button style={{ ...s.iconBtn }} title="Download as file"
                           onClick={() => {
-                            const blob = new Blob([file.content ?? ""], { type: "text/plain" });
+                            const blob = new Blob(
+  [file.content ?? ""],
+  {
+    type: file.contentType === "html"
+      ? "text/html"
+      : "text/plain"
+  }
+);
                             downloadFile(URL.createObjectURL(blob), file.name);
                           }}>⬇️</button>
                         <button style={s.iconBtn} title="Edit content" onClick={() => { setEditFileId(file.id); setEditFileContent(file.content); setOpenFileId(file.id); setEditFileNameId(null); }}>✏️</button>
@@ -696,8 +736,17 @@ export default function GeneratePhotos() {
                         rows={6} autoFocus onChange={(e) => setEditFileContent(e.target.value)} />
                       {editFileContent.trim() && (
                         <div style={{ ...s.previewBox, marginTop: 8 }}>
-                          <p style={s.previewLabel}>{parseTabData(editFileContent) ? "📊 Table Preview" : "📄 Text Preview"}</p>
-                          <ContentRenderer content={editFileContent} fileName={file.name} />
+                          <p style={s.previewLabel}>{file.contentType === "html" ? "🌐 HTML Preview" : parseTabData(editFileContent) ? "📊 Table Preview" : "📄 Text Preview"}</p>
+                          {file.contentType === "html" ? (
+                            <iframe
+                              srcDoc={editFileContent}
+                              title={`${file.name}-preview`}
+                              style={{ width: "100%", height: 400, borderRadius: 8, border: "1px solid #ddd", backgroundColor: "#fff" }}
+                              sandbox=""
+                            />
+                          ) : (
+                            <ContentRenderer content={editFileContent} fileName={file.name} />
+                          )}
                         </div>
                       )}
                       <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
@@ -705,6 +754,13 @@ export default function GeneratePhotos() {
                         <button style={s.noBtn} onClick={() => setEditFileId(null)}>✖ Cancel</button>
                       </div>
                     </>
+                  ) : file.contentType === "html" ? (
+                    <iframe
+                      srcDoc={file.content}
+                      title={file.name}
+                      style={{ width: "100%", height: 600, borderRadius: 8, border: "1px solid #ddd", backgroundColor: "#fff" }}
+                      sandbox=""
+                    />
                   ) : (
                     <ContentRenderer content={file.content} fileName={file.name} />
                   )}
