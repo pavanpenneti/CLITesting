@@ -27,6 +27,7 @@ const DiagnosticsTool = () => {
     'Split 3 Values',
     'Split 6 Values',
     'Split 7 Values',
+    'convert Multiple Values',
     'Binary Split',
     'Binary Split Detail',
     'Split Hex',
@@ -311,6 +312,18 @@ const time_date = (data) => {
     }
     return data1[0];
   }
+
+function convertmultipleValues(splitdata, row) {
+  const data1 = splitdata.split(' ');
+  const index = parseInt(data1[0], 16);
+
+  if (!Number.isNaN(index) && index >= 0 && index < 255 && row.extraTextBoxes[index] !== undefined) {
+    return row.extraTextBoxes[index];
+  }
+
+  return data1[0];
+}
+
 function binarySplit(splitdata, row) {
    const hexValue = splitdata.split(' ')[0];
 
@@ -866,6 +879,10 @@ const convertToInt2Reverse = (data) => {
         case 'Split 7 Values':
             methodName = 'convert7Values';
             processedData = convert7Values(slicedData, row); // Example for Merge: remove spaces
+            break;
+        case 'convert Multiple Values':
+            methodName = 'convertmultipleValues';
+            processedData = convertmultipleValues(slicedData, row); // Example for Merge: remove spaces
             break;
         case 'Binary Split':
             methodName = 'binarySplit';

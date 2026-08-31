@@ -30,16 +30,17 @@ function App() {
 		<RouteTitle/>
 		<Routes>
 				<Route exact path='/' Component={LogData}></Route>			
-       			<Route exact path='/apiData' Component={FetchData}></Route>			
-				<Route exact path='/logDataNewProtocol' Component={LogDataNewProtocol}></Route>		
+       			
+				
+				<Route exact path='/diagnosticstool' Component={DiagnosticsTool}></Route>
 				<Route exact path='/logData' Component={LogData}></Route>
+				<Route exact path='/logDataNewProtocol' Component={LogDataNewProtocol}></Route>		
+				<Route exact path='/apiData' Component={FetchData}></Route>	
 				<Route exact path='/cliData' Component={CLIData}></Route>
 				<Route exact path='/setDataFormat' Component={SetDataFormat}></Route>
 				<Route exact path='/SetDataFormatNewProtocol' Component={SetDataFormatNewProtocol}></Route>
 				
 				<Route exact path='/dailyReport' Component={DailyReport}></Route>
-				
-				<Route exact path='/diagnosticstool' Component={DiagnosticsTool}></Route>
 				<Route exact path='/logDataDetail' Component={LogDetail}></Route>
 				<Route exact path='/frequencyTable' Component={FrequencyTable}></Route>
 				<Route exact path='/setAPIData' Component={setAPIData}></Route>
