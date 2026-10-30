@@ -38,6 +38,7 @@ const DiagnosticsTool = () => {
     'Binary',
     '~Binary',
     'Time',
+    'Time_UTC',
     "Time_ms",
     'No. of Characters',
     'No. of Words',
@@ -440,8 +441,37 @@ function binarySplitDetail(splitdata, row) {
     return `${daysValue} days ${hoursValue} hours ${minutesValue} mins ${secondsValue} secs`;
   };
   
+const Display_time_utc = (data) => {
+    const hexWithoutSpaces = data.replace(/\s/g, '');
+    const byteArray = [];
 
-  
+    // Convert hex string into bytes
+    for (let i = 0; i < hexWithoutSpaces.length; i += 2) {
+        byteArray.push(parseInt(hexWithoutSpaces.substr(i, 2), 16));
+    }
+
+    // Reverse byte order (Big-Endian interpretation)
+    byteArray.reverse();
+
+    // Convert reversed bytes to decimal
+    let rawValue = 0;
+
+    for (let i = 0; i < byteArray.length; i++) {
+        rawValue = rawValue * 256 + byteArray[i];
+    }
+
+    // Convert Unix seconds to milliseconds
+    const timestamp_ms = rawValue * 1000;
+
+    // Convert to UTC
+    const utcDate = new Date(timestamp_ms);
+
+    if (isNaN(utcDate.getTime())) {
+        return "Invalid Timestamp";
+    }
+
+    return  utcDate.toUTCString();
+};
   const Display_time_ms = (data) => {
     const hexWithoutSpaces = data.replace(/\s/g, '');
     const byteArray = [];
@@ -924,6 +954,10 @@ const convertToInt2Reverse = (data) => {
             methodName = 'time';
             processedData = Display_time(slicedData); // Example for Merge: remove spaces
             break;
+        case 'Time_UTC':
+            methodName = 'time_UTC';
+            processedData = Display_time_utc(slicedData); // Example for Merge: remove spaces
+              break;
         case 'Time_ms':
             methodName = 'time_ms';
             processedData = Display_time_ms(slicedData); // Example for Merge: remove spaces
