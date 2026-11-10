@@ -15,6 +15,10 @@ const isHtml = (n = "") => /\.(html|htm)$/i.test(n);
 const ALLOWED_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|json|txt|crt|key|dfu|dnl\.dfu|mnt|py|pdf|docx?|xlsx?|xls|mp4|webm|mov|zip|rar|7z|html?|htm)$/i;
 const MAX_BYTES = 900_000;
 
+// ── folder-open passwords ─────────────────────────────────────────
+const FOLDER_PASSWORD = "asph";        // opens one top-level folder at a time
+const MASTER_PASSWORD = "harnishanu";     // CHANGE THIS: unlocks ALL folders, no more prompts
+
 const formatBytes = (b) => {
   if (!b) return "";
   if (b < 1024) return `${b} B`;
@@ -224,6 +228,7 @@ export default function GeneratePhotos() {
   const [authPass, setAuthPass]       = useState("");
   const [authError, setAuthError]     = useState("");
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [masterUnlocked, setMasterUnlocked] = useState(false); // true after master password
 
   // ── Firestore listeners ───────────────────────────────────────
   useEffect(() => {
@@ -267,14 +272,32 @@ export default function GeneratePhotos() {
     setAuthModal(true);
     setAuthUser(""); setAuthPass(""); setAuthError("");
   };
+
+  // Ask for credentials ONLY when opening a top-level folder (from Home).
+  // Sub-folders open directly with no password.
+  const requestOpen = (folder) => {
+    setPendingDelete({ type: "open", payload: folder });
+    setAuthModal(true);
+    setAuthUser(""); setAuthPass(""); setAuthError("");
+  };
+  const handleFolderClick = (folder) => {
+    if (currentFolderId === null && !masterUnlocked) requestOpen(folder);   // top level -> password
+    else openFolder(folder);                              // sub-folder -> open freely
+  };
+
   const confirmDelete = async () => {
-    if (authUser.trim() !== "pavan" || authPass !== "pavancycle") {
+    if (pendingDelete?.type === "open") {
+      // opening a folder: password only, no username
+      if (authPass === MASTER_PASSWORD) setMasterUnlocked(true);   // unlock everything
+      else if (authPass !== FOLDER_PASSWORD) { setAuthError("Incorrect password!"); return; }
+    } else if (authUser.trim() !== "pavan" || authPass !== "pavancycle") {
       setAuthError("Incorrect username or password!"); return;
     }
     setAuthModal(false); setAuthError("");
     if (!pendingDelete) return;
     const { type, payload } = pendingDelete;
     setPendingDelete(null);
+    if (type === "open") { openFolder(payload); return; }
     if (type === "folder") {
       await deleteFolderRecursive(payload.id);
       if (currentFolderId === payload.id) {
@@ -466,24 +489,36 @@ export default function GeneratePhotos() {
       {authModal && (
         <div style={s.overlay} onClick={cancelDelete}>
           <div style={s.authModal} onClick={(e) => e.stopPropagation()}>
-            <div style={s.authIconWrap}><span style={s.authIcon}>🔐</span></div>
-            <h3 style={s.authTitle}>Confirm Delete</h3>
+            <div style={s.authIconWrap}><span style={s.authIcon}>{pendingDelete?.type === "open" ? "🔒" : "🔐"}</span></div>
+            <h3 style={s.authTitle}>{pendingDelete?.type === "open" ? "Folder Locked" : "Confirm Delete"}</h3>
             <p style={s.authSubtitle}>
-              Enter your credentials to permanently delete{" "}
-              <strong>{pendingDelete?.type === "folder" ? `"${pendingDelete.payload.name}" folder` : `"${pendingDelete?.payload?.name}"`}</strong>.
+              {pendingDelete?.type === "open"
+                ? "Enter the password to open "
+                : "Enter your credentials to permanently delete "}
+              <strong>{pendingDelete?.type === "folder" || pendingDelete?.type === "open" ? `"${pendingDelete.payload.name}" folder` : `"${pendingDelete?.payload?.name}"`}</strong>.
             </p>
-            <label style={s.authLabel}>Username</label>
-            <input style={s.authInput} placeholder="Enter username" value={authUser} autoFocus
-              onChange={(e) => { setAuthUser(e.target.value); setAuthError(""); }}
-              onKeyDown={(e) => e.key === "Enter" && confirmDelete()} />
+            {pendingDelete?.type !== "open" && (
+              <>
+                <label style={s.authLabel}>Username</label>
+                <input style={s.authInput} placeholder="Enter username" value={authUser} autoFocus
+                  onChange={(e) => { setAuthUser(e.target.value); setAuthError(""); }}
+                  onKeyDown={(e) => e.key === "Enter" && confirmDelete()} />
+              </>
+            )}
             <label style={s.authLabel}>Password</label>
             <input style={s.authInput} type="password" placeholder="Enter password" value={authPass}
+              autoFocus={pendingDelete?.type === "open"}
               onChange={(e) => { setAuthPass(e.target.value); setAuthError(""); }}
               onKeyDown={(e) => e.key === "Enter" && confirmDelete()} />
             {authError && <div style={s.authError}><span>❌</span> {authError}</div>}
             <div style={s.authBtns}>
               <button style={s.authCancelBtn} onClick={cancelDelete}>✖ Cancel</button>
-              <button style={s.authConfirmBtn} onClick={confirmDelete}>🗑️ Delete</button>
+              <button
+                style={{ ...s.authConfirmBtn, ...(pendingDelete?.type === "open" ? { backgroundColor: "#1976d2" } : {}) }}
+                onClick={confirmDelete}
+              >
+                {pendingDelete?.type === "open" ? "🔓 Open" : "🗑️ Delete"}
+              </button>
             </div>
           </div>
         </div>
@@ -519,7 +554,7 @@ export default function GeneratePhotos() {
             {childFolders.map((folder) => (
               <div key={folder.id} style={s.folderCard}>
                 <div style={s.folderCardTop}>
-                  <span style={{ fontSize: 36, cursor: "pointer" }} onClick={() => openFolder(folder)}>📁</span>
+                  <span style={{ fontSize: 36, cursor: "pointer" }} onClick={() => handleFolderClick(folder)}>📁</span>
                   <div style={s.rowBtns}>
                     <button style={s.iconBtn} title="Rename" onClick={() => { setEditFolderId(folder.id); setEditFolderName(folder.name); }}>✏️</button>
                     <button style={s.iconBtn} title="Delete" onClick={() => { setEditFolderId(null); requestDelete("folder", folder); }}>🗑️</button>
@@ -536,7 +571,7 @@ export default function GeneratePhotos() {
                     </div>
                   </div>
                 ) : (
-                  <p style={s.folderCardName} onClick={() => openFolder(folder)}>{folder.name}</p>
+                  <p style={s.folderCardName} onClick={() => handleFolderClick(folder)}>{folder.name}</p>
                 )}
                 <p style={s.folderMeta}>
                   {allFolders.filter((f) => f.parentId === folder.id).length} folder(s) ·{" "}
